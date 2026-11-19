@@ -724,6 +724,16 @@ body:not(.dark) .sf-dr-logo{filter:drop-shadow(0 4px 8px #0a2a6033)!important}
 #welcomeSplash .splash-logo{animation:sfLogoGlow 2.4s ease-in-out infinite alternate}
 @keyframes sfLogoGlow{from{filter:drop-shadow(0 0 10px #3b82f666)}to{filter:drop-shadow(0 0 26px #8b5cf6aa)}}
 
+#sfUpdOverlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:24px;background:#050a18d9;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#sfUpdOverlay .sfu-card{width:min(380px,100%);text-align:center;padding:28px 22px;border-radius:26px;background:linear-gradient(160deg,#14224a,#0b1230);color:#fff;border:1px solid #ffffff1f;box-shadow:0 24px 60px #000a}
+#sfUpdOverlay .sfu-ic{font-size:46px;margin-bottom:6px}
+#sfUpdOverlay h2{margin:0 0 4px;font-size:20px;color:#fff!important;-webkit-text-fill-color:#fff}
+#sfUpdOverlay .sfu-v{margin:0 0 10px;color:#8ab4ff;font-weight:700;direction:ltr}
+#sfUpdOverlay .sfu-n{margin:0 0 12px;color:#cdd7f5;font-size:14px;line-height:1.7}
+#sfUpdOverlay .sfu-s{min-height:18px;margin:0 0 10px;color:#9fb0e0;font-size:13px}
+#sfUpdOverlay .sfu-b{display:flex;flex-direction:column;gap:8px}
+#sfUpdOverlay .sfu-b .btn{width:100%}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2262,18 +2272,19 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.1.2';
+const VERSION='3.2.0';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
 const ar=()=>{try{return lang!=='en'}catch(e){return true}};
 window.SF_VERSION=VERSION;
 const cmp=(a,b)=>{const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1}return 0};
+const DEFAULT_URL='https://ammarahmed542008-lgtm.github.io/studyflow-1/';
 const base=()=>{
  const custom=(LS('sf_update_url')||'').trim();
  if(custom)return custom.replace(/\/?(index\.html|version\.json)?(\?.*)?$/,'/');
- if(/^https?:$/.test(location.protocol))return location.href.replace(/[?#].*$/,'').replace(/[^/]*$/,'');
- return '';
+ if(/^https?:$/.test(location.protocol)&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname))return location.href.replace(/[?#].*$/,'').replace(/[^/]*$/,'');
+ return DEFAULT_URL;
 };
 let remote=null;
 async function check(manual){
@@ -2289,10 +2300,18 @@ async function check(manual){
   if(inst){inst.hidden=!newer;inst.textContent=(ar()?'⬇️ تثبيت التحديث ':'⬇️ Install update ')+remote.version}
   say(newer?(ar()?'يوجد تحديث جديد '+remote.version+(remote.notes?' — '+remote.notes:''):'Update '+remote.version+' available'):(ar()?'أنت على آخر نسخة ✅':'You are up to date ✅'));
   badge(newer);
-  if(newer&&!manual)safe(()=>showFocusToast(ar()?'تحديث جديد متاح':'Update available',(ar()?'افتح الإعدادات ← التحديثات لتثبيت ':'Open Settings → Updates to install ')+remote.version,'🔄',7000));
+  if(newer&&!manual)safe(prompt);
   return remote;
  }catch(e){say((ar()?'تعذر التحقق من التحديث: ':'Could not check: ')+e.message);return null}
  finally{if(chk)chk.disabled=false}
+}
+function prompt(){
+ if($('sfUpdOverlay')||sessionStorage.getItem('sf_upd_later')===remote.version)return;
+ const o=document.createElement('div');o.id='sfUpdOverlay';
+ o.innerHTML=`<div class="sfu-card"><div class="sfu-ic">🔄</div><h2>${ar()?'يوجد تحديث جديد':'New update available'}</h2><p class="sfu-v">${remote.version}</p>${remote.notes?`<p class="sfu-n">${String(remote.notes).replace(/</g,'&lt;')}</p>`:''}<p class="sfu-s" id="sfuS"></p><div class="sfu-b"><button type="button" class="btn" id="sfuGo">${ar()?'⬇️ تنزيل التحديث الآن':'⬇️ Download now'}</button><button type="button" class="btn outline" id="sfuLater">${ar()?'لاحقاً':'Later'}</button></div></div>`;
+ document.body.appendChild(o);
+ $('sfuLater').onclick=()=>{try{sessionStorage.setItem('sf_upd_later',remote.version)}catch(e){}o.remove()};
+ $('sfuGo').onclick=async()=>{$('sfuGo').disabled=true;$('sfuLater').hidden=true;const st=$('sfUpdStatus');const w=setInterval(()=>{const t=st&&st.textContent;if(t&&$('sfuS'))$('sfuS').textContent=t},200);await install();setTimeout(()=>clearInterval(w),20000)};
 }
 function badge(on){const b=$('sfDrawerBtnBadge');if(b)b.hidden=!on;const m=$('sfMenuBtn');if(m)m.classList.toggle('has-update',!!on)}
 async function install(){
@@ -2321,7 +2340,7 @@ function mount(){
  <div class="btnrow"><button type="button" class="btn outline" id="sfUpdCheck">${ar()?'تحقق من التحديث':'Check for updates'}</button><button type="button" class="btn" id="sfUpdInstall" hidden></button></div>
  <p class="muted" id="sfUpdStatus" style="margin-top:10px"></p>
  <details style="margin-top:8px"><summary class="muted">${ar()?'إعدادات متقدمة':'Advanced'}</summary><label style="display:block;margin-top:8px">${ar()?'رابط التحديث (اختياري)':'Update link (optional)'}<input id="sfUpdUrl" inputmode="url" placeholder="https://username.github.io/studyflow/" dir="ltr"></label><p class="muted">${ar()?'اتركه فاضي لو بتفتح التطبيق من رابطه على الإنترنت.':'Leave empty if you open the app from its web link.'}</p></details>`;
- grid.insertBefore(p,grid.firstChild);
+ grid.insertBefore(p,grid.firstChild);const sd=document.createElement('div');sd.hidden=true;
  $('sfUpdCheck').addEventListener('click',()=>check(true));
  $('sfUpdInstall').addEventListener('click',install);
  const u=$('sfUpdUrl');u.value=LS('sf_update_url')||'';u.addEventListener('change',()=>{LS('sf_update_url',u.value.trim()||null);check(true)});
@@ -2330,7 +2349,7 @@ mount();
 /* automatic check: at most once every 6 hours, only when online */
 const last=Number(LS('sf_update_checked')||0);
 if(LS('sf_updated_to')===VERSION){LS('sf_updated_to',null);safe(()=>showFocusToast(ar()?'تم التحديث ✅':'Updated ✅',(ar()?'أنت الآن على النسخة ':'Now on version ')+VERSION,'✨',4500))}
-if(base()&&navigator.onLine!==false&&Date.now()-last>6*3600e3)setTimeout(()=>check(false),5000);
+if(base()&&navigator.onLine!==false)setTimeout(()=>check(false),2500);
 window.sfCheckUpdate=check;
 })();
 
