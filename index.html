@@ -2272,13 +2272,14 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.2.0';
+const VERSION='3.2.1';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
 const ar=()=>{try{return lang!=='en'}catch(e){return true}};
 window.SF_VERSION=VERSION;
 const cmp=(a,b)=>{const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1}return 0};
+const isNative=()=>{try{return !!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())}catch(e){return false}};
 const DEFAULT_URL='https://ammarahmed542008-lgtm.github.io/studyflow-1/';
 const base=()=>{
  const custom=(LS('sf_update_url')||'').trim();
@@ -2325,6 +2326,12 @@ async function install(){
   if(!/id="welcomeSplash"/.test(txt)||txt.length<200000)throw new Error(ar()?'الملف المنزَّل غير صالح':'Invalid file');
   safe(()=>persist());
   LS('sf_updated_to',remote.version);
+  if(isNative()){
+   /* Android app: keep the bridge origin; store the new page and let the boot loader use it */
+   try{localStorage.setItem('sf_override_html',txt);localStorage.setItem('sf_override_ver',remote.version)}catch(e){throw new Error(ar()?'مساحة التخزين ممتلئة':'Storage full')}
+   say(ar()?'تم التنزيل — جاري إعادة التشغيل…':'Installed — restarting…');
+   setTimeout(()=>location.reload(),600);return;
+  }
   try{if('caches' in window){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}}catch(e){}
   try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(x=>x.unregister()))}}catch(e){}
   say(ar()?'تم التنزيل — جاري إعادة التشغيل…':'Installed — restarting…');
