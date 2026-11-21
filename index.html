@@ -1999,7 +1999,7 @@ const subj=n=>window.sfSubj?sfSubj(n,DEFAULT[0]):DEFAULT[0];
 const isOfficial=l=>l&&(l.origin==='official'||l.officialKey);
 function weekItems(W){
  const seen=new Set();
- return lessons.filter(l=>{const w=lessonWeek(l);if(w===null)return false;return w===W||(!isGov()&&(W===11||W===12)&&w===10&&isOfficial(l))})
+ return lessons.filter(l=>{const w=lessonWeek(l);if(w===null)return false;return w===W})
   .filter(l=>{const k=[dayIndex(l.day),l.start,l.end,String(l.name||'').trim().toLowerCase(),String(l.place||'').trim().toLowerCase()].join('|');if(seen.has(k))return false;seen.add(k);return true})
   .sort((a,b)=>String(a.start||'').localeCompare(String(b.start||'')));
 }
@@ -2007,7 +2007,7 @@ function weekItems(W){
 window.sfLessonOccurrences=function(daysAhead=14){
  const out=[],now=Date.now(),limit=now+daysAhead*864e5;
  lessons.forEach(l=>{const w=lessonWeek(l),di=dayIndex(l.day);if(w===null||di<0||!l.start)return;
-  const weeks=(w===10&&isOfficial(l)&&!isGov())?[10,11,12]:[w];
+  const weeks=[w];
   weeks.forEach(ww=>{const d=dateOf(ww,di);const [h,m]=String(l.start).split(':').map(Number);const [eh,em]=String(l.end||l.start).split(':').map(Number);
    const s=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h||0,m||0).getTime(),e=new Date(d.getFullYear(),d.getMonth(),d.getDate(),eh||0,em||0).getTime();
    if(e>=now&&s<=limit)out.push({lesson:l,start:s,end:e})})});
@@ -2272,7 +2272,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.2.3';
+const VERSION='3.3.0';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2609,10 +2609,34 @@ const GOV_EXAMS=[
  ['Final: Patient, physician professionalism & ethics','2027-01-21','Final']
 ];
 const AH_EXAMS=OFFICIAL_EXAMS.map(x=>x.slice());
-const AH_WEEKS={6:WEEK6,7:WEEK7,8:WEEK8,9:WEEK9,10:WEEK10};
+const AH_WEEKS={6:WEEK6,7:WEEK7,8:WEEK8,9:WEEK9};
 
 /* ---------- gov data -> same shape the app already renders ---------- */
 const d2=(d)=>d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+
+AH_WEEKS[10]=[];AH_WEEKS[11]=[];AH_WEEKS[12]=[];
+/* ---------- private (ahlia) weeks 10-12: new university file (last update 20-11-2026) ---------- */
+const AH_RM={1:'FR-5',2:'FR-6',3:'FR-9',4:'FR-23',5:'FR-26',6:'FR-7',7:'SD-5',8:'SD-6',9:'SD-7',10:'FR-5'};
+const AH_AN='\u0627\u0644\u0645\u0634\u0631\u062d\u0629 \u0637\u0628 \u0662';
+const FR1=AH_AN+' (FR 01)',FR6=AH_AN+' (FR 06)';
+const SAT21={Bio:{1:'SD05',2:'SD06',3:'SD07',4:'SD05'},Anatomy:{4:FR1,5:FR6,1:FR1,2:FR6},Physiology:{3:'SD07',6:'SD08',9:'SD29',10:'SD30'},Histology:{7:'SD10',8:'SD27',5:'SD06',6:'SD08'},Professionalism:{9:'SD29',10:'SD30',7:'SD10',8:'SD27'}};
+const ahP=(sub,secs,w,di)=>secs.map(n=>({name:(sub==='Biochemistry'?'Bio':sub)+' sec '+n,sections:[n],room:(w===10&&di===0&&SAT21[sub==='Biochemistry'?'Bio':sub])?SAT21[sub==='Biochemistry'?'Bio':sub][n]:(sub==='Anatomy'?AH_AN:AH_RM[n])}));
+const ahL=(n,r)=>({name:n,room:r,lecture:true});
+function ahWeek(w){/*defined below*/
+ const mon=w===10?{b:[['Bio',[6]],['Anatomy',[8]],['Physiology',[2]],['Histology',[10]],['Professionalism',[4]]],c:[['Bio',[8]],['Anatomy',[10]],['Physiology',[4]],['Histology',[2]],['Professionalism',[6]]]}
+  :{b:[['Bio',[9]],['Anatomy',[7]],['Physiology',[1]],['Histology',[3]],['Professionalism',[5]]],c:[['Bio',[5]],['Anatomy',[3]],['Physiology',[7]],['Histology',[9]],['Professionalism',[1]]]};
+ const wed=w===10?{a:[['Bio',[9]],['Physiology',[1]],['Histology',[3]],['Anatomy',[7]],['Professionalism',[5]]],b:[['Bio',[5]],['Physiology',[7]],['Histology',[9]],['Anatomy',[3]],['Professionalism',[1]]]}
+  :{a:[['Bio',[6]],['Physiology',[2]],['Histology',[10]],['Anatomy',[8]],['Professionalism',[4]]],b:[['Bio',[8]],['Physiology',[4]],['Histology',[2]],['Anatomy',[10]],['Professionalism',[6]]]};
+ const P=(list,di)=>[].concat(...list.map(x=>ahP(x[0]==='Bio'?'Biochemistry':x[0],x[1],w,di)));
+ const day=(nm,di,slots)=>{const d=new Date(AH_T0.getFullYear(),AH_T0.getMonth(),AH_T0.getDate()+7*(w-6)+di);return {day:nm,date:d2(d),slots:slots.filter(x=>x[1].length).map(x=>({time:SLOT[x[0]],items:x[1]}))}};
+ return [
+  day('Saturday',0,[['A',[ahL('Anatomy lec 1','Hall 7')]],['B',P([['Bio',[1,2]],['Anatomy',[5,4]],['Physiology',[3,6]],['Histology',[7,8]],['Professionalism',[9,10]]],0)],['C',P([['Bio',[3,4]],['Anatomy',[1,2]],['Physiology',[9,10]],['Histology',[5,6]],['Professionalism',[7,8]]],0)]]),
+  day('Sunday',1,[['A',[ahL('Histology lec','Hall 1')]],['B',[ahL('Bio lec 1','Hall 1')]],['C',P([['Bio',[7,10]],['Anatomy',[6]],['Physiology',[5]],['Histology',[1]],['Professionalism',[2]]],1)]]),
+  day('Monday',2,[['A',[ahL('Professionalism lec','Hall 1')]],['B',P(mon.b,2)],['C',P(mon.c,2)]]),
+  day('Tuesday',3,[['A',[ahL('Physiology lec','Hall 7')]],['B',[ahL('Anatomy lec 2','Hall 7')]],['C',P([['Anatomy',[9]],['Physiology',[8]],['Histology',[4]],['Professionalism',[3]]],3)]]),
+  day('Wednesday',4,[['A',P(wed.a,4)],['B',P(wed.b,4)],['C',[ahL('Bio lec 2','Hall 1')]]])
+ ];
+}
 const GOV={};
 (function(){
  const byW={};
@@ -2633,6 +2657,8 @@ const GOV={};
  });
 })();
 
+[10,11,12].forEach(w=>{AH_WEEKS[w]=ahWeek(w)});
+
 /* ---------- public helpers used across the app ---------- */
 const track=()=>LS('sf_track')==='gov'?'gov':'ahlia';
 window.sfTrack=track;
@@ -2641,7 +2667,7 @@ window.sfUnitName=()=>track()==='gov'?'Group':'Section';
 window.sfWeekData=w=>track()==='gov'?(GOV[w]||[]):(AH_WEEKS[w]||AH_WEEKS[6]);
 window.sfOfficialExams=()=>OFFICIAL_EXAMS;
 const AR_W={6:'السادس',7:'السابع',8:'الثامن',9:'التاسع',10:'العاشر',11:'الحادي عشر',12:'الثاني عشر'};
-window.sfWeekTitle=w=>track()==='gov'?(AR_W[w]||String(w)):({10:'10–12'}[w]||AR_W[w]||String(w));
+window.sfWeekTitle=w=>AR_W[w]||String(w);
 function range(w,days){const t0=track()==='gov'?GOV_T0:AH_T0,f=d=>new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+7*(w-6)+d).toLocaleDateString('ar-EG',{day:'numeric',month:'long'});return f(days[0])+' – '+f(days[1])}
 window.sfWeekDesc=w=>{
  if(track()==='gov'){
@@ -2649,7 +2675,7 @@ window.sfWeekDesc=w=>{
   if(w===8)return range(w,[1,5])+' · ميدترم الأحد والاثنين والثلاثاء ثم محاضرات من الأربعاء.';
   return range(w,[w===10?0:1,5]);
  }
- return ({6:'24–28 أكتوبر 2026',7:'31 أكتوبر – 4 نوفمبر 2026',8:'7–11 نوفمبر 2026 · أسبوع امتحانات الميدترم، دون محاضرات ظاهرة في الجدول الأسبوعي.',9:'14–19 نوفمبر 2026',10:'21 نوفمبر – 9 ديسمبر 2026 · هذا هو الجدول المتكرر نفسه خلال الأسابيع 10 و11 و12.'})[w]||'';
+ return ({6:'24–28 أكتوبر 2026',7:'31 أكتوبر – 4 نوفمبر 2026',8:'7–11 نوفمبر 2026 · أسبوع امتحانات الميدترم، دون محاضرات ظاهرة في الجدول الأسبوعي.',9:'14–19 نوفمبر 2026',10:'21–25 نوفمبر 2026',11:'28 نوفمبر – 2 ديسمبر 2026',12:'5–9 ديسمبر 2026'})[w]||'';
 };
 window.sfSubj=(name,fallback)=>{
  const n=String(name||'').trim().toLowerCase();
@@ -2680,10 +2706,10 @@ function applyUI(){
  /* official view: week picker */
  const grid=document.querySelector('#weekPickerPanel .week-choice-grid');
  if(grid){
-  if(gov){
-   const icon={7:'📝',8:'📝'};
-   grid.innerHTML=[6,7,8,9,10,11,12].map(w=>`<button type="button" class="week-choice" data-select-week="${w}"><span class="week-choice-icon">${icon[w]||'📘'}</span><span><b>الأسبوع ${AR_W[w]}</b><small>${esc2(sfWeekDesc(w).split(' · ')[0])}${w===7||w===8?' · ميدترم':''}</small></span><span class="week-choice-arrow">↗</span></button>`).join('');
-  }else if(ORIG.grid)grid.innerHTML=ORIG.grid;
+  {
+   const icon=gov?{7:'📝',8:'📝'}:{8:'📝'};
+   grid.innerHTML=[6,7,8,9,10,11,12].map(w=>`<button type="button" class="week-choice" data-select-week="${w}"><span class="week-choice-icon">${icon[w]||'📘'}</span><span><b>الأسبوع ${AR_W[w]}</b><small>${esc2(sfWeekDesc(w).split(' · ')[0])}${(gov&&w===7)||w===8?' · ميدترم':''}</small></span><span class="week-choice-arrow">↗</span></button>`).join('');
+  }
  }
  const pd=document.querySelector('#weekPickerPanel p.muted');
  if(pd){if(gov)pd.textContent='جدول الفرقة الأولى — الترم الأول (آخر تعديل أصدرته الكلية). الأسابيع من 13 إلى 17 لم تصدر بعد؛ تقدر تضيف مواعيدها يدويًا.';else if(ORIG.desc)pd.innerHTML=ORIG.desc}
@@ -2696,8 +2722,8 @@ function applyUI(){
  const mw=$('myScheduleWeek');
  if(mw){
   if(gov)mw.innerHTML=[6,7,8,9,10,11,12].map(w=>`<option value="${w}">الأسبوع ${AR_W[w]} (${range(w,[w===10?0:1,5])})</option>`).join('');
-  else if(ORIG.wk)mw.innerHTML=ORIG.wk;
-  const cur=Math.max(6,Math.min(gov?12:10,safe(()=>sfCurrentWeek())||6));mw.value=String(cur);
+  else if(ORIG.wk)mw.innerHTML=ORIG.wk.replace(/<option value="10">[\s\S]*?<\/option>/,[10,11,12].map(w=>`<option value="${w}">الأسبوع ${AR_W[w]} (${range(w,[0,4])})</option>`).join(''));
+  const cur=Math.max(6,Math.min(12,safe(()=>sfCurrentWeek())||6));mw.value=String(cur);
  }
  const h=document.querySelector('#view-schedule .personal-section-tools h2');if(h)h.textContent=gov?'🎯 أضف مواعيد جروبك تلقائيًا':'🎯 أضف مواعيد سكشنك تلقائيًا';
  const ab=document.querySelector('#sfSchedAdd [data-open=auto]');if(ab)ab.textContent='🎯 '+(en()?(gov?'Add my group':'Add my section'):'أضف '+zh+(gov?'ي':'ني'));
@@ -2707,7 +2733,7 @@ function applyUI(){
  const tb=document.querySelector('.official-table tbody');
  if(tb)tb.innerHTML=gov?GOV_EXAMS.map(x=>`<tr><td>${esc2(x[0])}</td><td>${x[1].split('-').reverse().join('-')}</td></tr>`).join(''):ORIG.tb;
  const nt=document.querySelector('#view-official .official-table-wrap')?.parentElement?.querySelector('.note');
- if(nt)nt.innerHTML=gov?'مواعيد الامتحانات من جدول الكلية (آخر تعديل أصدرته الكلية). الامتحان العملي لـ Principles of microscopic & macroscopic structure يوم 24/12 مذكور في الجدول بدون كلمة «practical»؛ راجع الكلية للتأكيد.':ORIG.note;
+ if(nt)nt.innerHTML=gov?'مواعيد الامتحانات من جدول الكلية (آخر تعديل أصدرته الكلية). الامتحان العملي لـ Principles of microscopic & macroscopic structure يوم 24/12 مذكور في الجدول بدون كلمة «practical»؛ راجع الكلية للتأكيد.':'أماكن العملي: التشريح في المشرحة (مبنى طبي 2)، وباقي المواد حسب السكشن — S1 FR-5 · S2 FR-6 · S3 FR-9 · S4 FR-23 · S5 FR-26 · S6 FR-7 · S7 SD-5 · S8 SD-6 · S9 SD-7 · S10 FR-5. المحاضرات في المدرجات المبيّنة. (السبت 21/11 له أماكن خاصة حسب جدول اليوم.)';
  safe(()=>{if(gov&&typeof subjects!=='undefined'&&!subjects.some(s=>s&&s.name==='Vertical')){subjects.push({name:'Vertical',active:true});if(typeof sfSave==='function')sfSave();if(typeof fillSelects==='function')fillSelects()}});
  /* chip + drawer */
  let chip=$('sfTrackChip');
