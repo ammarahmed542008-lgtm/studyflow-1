@@ -2272,7 +2272,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.2.2';
+const VERSION='3.2.3';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2445,12 +2445,12 @@ const GOV_RAW=`6;Sun;A;L;An;;Hall 8
 9;Sun;C;P;Hi;4;B202
 9;Sun;D;P;Ph;1;C203
 9;Sun;D;P;An;3,4;C102, C103
-9;Mon;A;P;Bi;5,12;B120, B220
+9;Mon;A;P;Bi;5;B120
 9;Mon;A;P;An;6;C102
 9;Mon;A;P;Ph;7,9;C202, C203
 9;Mon;A;P;Hi;8;B202
 9;Mon;A;P;Ve;1,2;C1, C2
-9;Mon;B;P;Bi;6,9;B120, B220
+9;Mon;B;P;Bi;6;B120
 9;Mon;B;P;An;7,12;C102, C103
 9;Mon;B;P;Ph;2,8;C202, C203
 9;Mon;B;P;Hi;5,10;B202, B203
@@ -2480,6 +2480,7 @@ const GOV_RAW=`6;Sun;A;L;An;;Hall 8
 9;Thu;A;GD;Hi;5,6,7,8;C1, Hall 8
 9;Thu;B;GD;Ph;5,6,7,8;B220, B320
 9;Thu;B;GD;Hi;1,2,3,4;C1, Hall 8
+9;Thu;B;P;Bi;9,12;B120, Hall 7
 9;Thu;C;GD;Ph;9,10,11,12;B220, B320
 9;Thu;C;P;Bi;2,8;B120, Hall 7
 9;Thu;D;GD;Hi;9,10,11,12;C1, Hall 7
