@@ -734,6 +734,28 @@ body:not(.dark) .sf-dr-logo{filter:drop-shadow(0 4px 8px #0a2a6033)!important}
 #sfUpdOverlay .sfu-b{display:flex;flex-direction:column;gap:8px}
 #sfUpdOverlay .sfu-b .btn{width:100%}
 
+/* updates board */
+#sfBoardCard{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 14px;padding:14px 16px;border:0;border-radius:22px;text-align:start;font:inherit;color:#fff;cursor:pointer;background:linear-gradient(135deg,#e0467d,#7a3cf0);box-shadow:0 10px 26px #7a3cf03a;-webkit-tap-highlight-color:transparent}
+#sfBoardCard[hidden]{display:none}
+#sfBoardCard .bd-ic{font-size:26px;line-height:1}
+#sfBoardCard .bd-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#sfBoardCard b{font-size:15px;display:flex;align-items:center;gap:8px;color:#fff}
+#sfBoardCard b i{font-style:normal;font-size:10px;font-weight:800;background:#fff;color:#c2336a;border-radius:20px;padding:2px 8px}
+#sfBoardCard small{font-size:13px;opacity:1!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff!important;-webkit-text-fill-color:#fff;font-weight:600}
+#sfBoardCard b{color:#fff!important;-webkit-text-fill-color:#fff}
+#sfBoardCard .bd-ar{font-size:26px;opacity:.85}
+#view-board h3{margin:0 0 10px}
+.sf-bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.sf-bd-item{padding:12px 14px;border-radius:16px;background:var(--soft);border:1px solid var(--line)}
+.sf-bd-item b{display:block;margin-bottom:4px}
+.sf-bd-item p{margin:0 0 6px;line-height:1.7}
+.sf-bd-item small,.sf-bd-nt small{opacity:.7}
+.sf-bd-note{padding:12px 14px;border-radius:16px;background:var(--soft);border:1px solid var(--line);margin-bottom:10px}
+.sf-bd-note.pin{border-color:#e0467d88}
+.sf-bd-note p{margin:6px 0 0;line-height:1.75;white-space:pre-wrap}
+.sf-bd-nt{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+#sfBoardCard b i{color:#c2336a!important;-webkit-text-fill-color:#c2336a}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -1886,12 +1908,12 @@ body:has(#sfFocusStage.sf-active) #focusSoundTest{display:none!important}
 (()=>{
 const $=id=>document.getElementById(id);
 const L=()=>(typeof lang!=='undefined'&&lang==='en')?1:0;
-const VIEWS=[['schedule','🗓️','الجدول','Schedule','main'],['official','🏫','الجدول الجامعي','University timetable','main'],['tasks','✅','مهام المذاكرة','Study tasks','main'],['exams','🎓','منظم الامتحانات','Exam planner','main'],['suggest','✨','اقترح لي تنظيماً','Suggest a plan','tools'],['focus','⏱️','التركيز','Focus timer','tools'],['forest','🌳','Focus Grove','Focus Grove','tools'],['ai-planner','🤖','مساعد الذكاء الاصطناعي','AI assistant','tools'],['settings','⚙️','الإعدادات والبيانات','Settings & data','app']];
+const VIEWS=[['schedule','🗓️','الجدول','Schedule','main'],['official','🏫','الجدول الجامعي','University timetable','main'],['tasks','✅','مهام المذاكرة','Study tasks','main'],['exams','🎓','منظم الامتحانات','Exam planner','main'],['board','📌','لوحة المتابعة','Updates board','main'],['suggest','✨','اقترح لي تنظيماً','Suggest a plan','tools'],['focus','⏱️','التركيز','Focus timer','tools'],['forest','🌳','Focus Grove','Focus Grove','tools'],['ai-planner','🤖','مساعد الذكاء الاصطناعي','AI assistant','tools'],['settings','⚙️','الإعدادات والبيانات','Settings & data','app']];
 const NAV=[['schedule','🗓️','الجدول','Schedule'],['tasks','✅','المهام','Tasks'],['focus','⏱️','تركيز','Focus'],['forest','🌳','الغابة','Grove'],['exams','🎓','امتحانات','Exams']];
 const GROUPS={main:['الرئيسية','Main'],tools:['أدوات المذاكرة','Study tools'],app:['التطبيق','App']};
 const THEMES=[['ocean','أوشن','Ocean','linear-gradient(135deg,#0a3a63,#2f86e6)'],['midnight','ليلي','Midnight','linear-gradient(135deg,#0a111d,#5aa9ff)'],['forest','غابة','Forest','linear-gradient(135deg,#08150f,#3fcf8e)'],['sunset','غروب','Sunset','linear-gradient(135deg,#7a2f0f,#ea7a3f)']];
 
-const TILE={schedule:['#4aa3ff','#2563eb','#1e4fc4'],tasks:['#43e0a0','#16a36b','#0f7f52'],focus:['#ffb347','#f2650f','#c24a05'],forest:['#6be27a','#1d9b4d','#13763a'],exams:['#b48cff','#7242e0','#5a2fc0'],official:['#3fd6d6','#0f9aa8','#0b7a86'],suggest:['#ffd35a','#f0a000','#b97800'],'ai-planner':['#8f9dff','#4f5fe8','#3a47c0'],settings:['#9fb0c8','#5b6f8c','#44566f']};
+const TILE={schedule:['#4aa3ff','#2563eb','#1e4fc4'],tasks:['#43e0a0','#16a36b','#0f7f52'],focus:['#ffb347','#f2650f','#c24a05'],forest:['#6be27a','#1d9b4d','#13763a'],exams:['#b48cff','#7242e0','#5a2fc0'],official:['#3fd6d6','#0f9aa8','#0b7a86'],board:['#ff9db8','#e0467d','#b52c5c'],suggest:['#ffd35a','#f0a000','#b97800'],'ai-planner':['#8f9dff','#4f5fe8','#3a47c0'],settings:['#9fb0c8','#5b6f8c','#44566f']};
 const GLYPH={
 schedule:'<rect x="3.8" y="5" width="16.4" height="15" rx="3.6" fill="#fff"/><rect x="3.8" y="5" width="16.4" height="5" rx="2.5" fill="var(--tc)" opacity=".35"/><rect x="7.2" y="2.8" width="2.2" height="4.4" rx="1.1" fill="#fff"/><rect x="14.6" y="2.8" width="2.2" height="4.4" rx="1.1" fill="#fff"/><g fill="var(--tc)"><circle cx="8.4" cy="13.6" r="1.4"/><circle cx="12" cy="13.6" r="1.4"/><circle cx="15.6" cy="13.6" r="1.4"/><circle cx="8.4" cy="17" r="1.4"/><circle cx="12" cy="17" r="1.4"/></g>',
 tasks:'<circle cx="12" cy="12" r="9" fill="#fff"/><path d="M7.6 12.4l3.1 3.1 5.8-6.4" fill="none" stroke="var(--tc)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1899,6 +1921,7 @@ focus:'<circle cx="12" cy="13.2" r="7.6" fill="#fff"/><rect x="9.6" y="2.6" widt
 forest:'<rect x="10.5" y="13" width="3" height="8" rx="1.3" fill="#fff" opacity=".8"/><circle cx="12" cy="8.4" r="5.4" fill="#fff"/><circle cx="7.6" cy="12.6" r="3.9" fill="#fff"/><circle cx="16.4" cy="12.6" r="3.9" fill="#fff"/>',
 exams:'<path d="M12 4l10 4.8-10 4.8L2 8.8z" fill="#fff"/><path d="M6.2 12.2v4.2c0 1.4 2.7 2.8 5.8 2.8s5.8-1.4 5.8-2.8v-4.2L12 15z" fill="#fff" opacity=".85"/><rect x="20.2" y="9.2" width="1.6" height="6" rx=".8" fill="#fff"/>',
 official:'<path d="M12 3l9.5 5v2H2.5V8z" fill="#fff"/><g fill="#fff"><rect x="4.6" y="11.2" width="2.6" height="7" rx=".8"/><rect x="10.7" y="11.2" width="2.6" height="7" rx=".8"/><rect x="16.8" y="11.2" width="2.6" height="7" rx=".8"/><rect x="2.5" y="19.4" width="19" height="2.2" rx="1"/></g>',
+board:'<path d="M4 9.5v5l9.5 3.7V5.8z" fill="#fff"/><rect x="2.4" y="9.4" width="3.2" height="5.2" rx="1.2" fill="#fff" opacity=".85"/><path d="M16.2 9.2a3.2 3.2 0 010 5.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M6.4 15l1.2 4.6h2.6l-1-3.4" fill="#fff" opacity=".8"/>',
 suggest:'<path d="M12 2.5l2.3 6.2 6.2 2.3-6.2 2.3L12 19.5l-2.3-6.2L3.5 11l6.2-2.3z" fill="#fff"/><path d="M19 15.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="#fff" opacity=".85"/>',
 'ai-planner':'<rect x="4.5" y="8" width="15" height="11.5" rx="4" fill="#fff"/><circle cx="9.3" cy="13.6" r="1.8" fill="var(--tc)"/><circle cx="14.7" cy="13.6" r="1.8" fill="var(--tc)"/><rect x="11" y="4.4" width="2" height="3.4" rx="1" fill="#fff"/><circle cx="12" cy="3.7" r="1.6" fill="#fff"/><rect x="2.2" y="12" width="2" height="4.4" rx="1" fill="#fff" opacity=".8"/><rect x="19.8" y="12" width="2" height="4.4" rx="1" fill="#fff" opacity=".8"/>',
 settings:'<circle cx="12" cy="12" r="6.2" fill="#fff"/><circle cx="12" cy="12" r="2.6" fill="var(--tc)"/><circle cx="12" cy="12" r="8.6" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="3.4 3.35"/>'};
@@ -2272,7 +2295,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.3.0';
+const VERSION='3.4.0';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2357,6 +2380,7 @@ mount();
 const last=Number(LS('sf_update_checked')||0);
 if(LS('sf_updated_to')===VERSION){LS('sf_updated_to',null);safe(()=>showFocusToast(ar()?'تم التحديث ✅':'Updated ✅',(ar()?'أنت الآن على النسخة ':'Now on version ')+VERSION,'✨',4500))}
 if(base()&&navigator.onLine!==false)setTimeout(()=>check(false),2500);
+window.sfBase=base;
 window.sfCheckUpdate=check;
 })();
 
@@ -2813,6 +2837,71 @@ applyUI();
  new MutationObserver((m,ob)=>{if(sp.classList.contains('hide')){ob.disconnect();go()}}).observe(sp,{attributes:true,attributeFilter:['class']});
 })();
 {const prev=window.sfOnLang;window.sfOnLang=function(){if(prev)prev.apply(this,arguments);safe(applyUI)}}
+})();
+
+</script>
+<script id="sf-v3-board">
+/* StudyFlow v3.3: updates board — "where we reached" per subject + announcements.
+   Content lives in board.json next to index.html (edited by the admin, fetched on launch, cached for offline). */
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const KEY='sf_board',SEEN='sf_board_seen';
+const en=()=>{try{return lang==='en'}catch(e){return false}};
+const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const track=()=>{try{return window.sfTrack?sfTrack():'ahlia'}catch(e){return 'ahlia'}};
+let data=null;
+try{data=JSON.parse(LS(KEY)||'null')}catch(e){}
+const tx=(o,k)=>en()&&o[k+'_en']?o[k+'_en']:(o[k]||'');
+const vis=x=>!x.track||x.track==='all'||x.track===track();
+const fdate=d=>{if(!d)return '';const t=new Date(d+'T00:00:00');return isNaN(t)?esc(d):t.toLocaleDateString(en()?'en-GB':'ar-EG',{day:'numeric',month:'short'})};
+const stamp=()=>data&&data.updated?String(data.updated)+'|'+((data.notices||[]).length)+'|'+((data.progress||[]).length):'';
+const isNew=()=>!!data&&stamp()!==LS(SEEN);
+
+function ensureView(){
+ let v=$('view-board');if(v)return v;
+ const m=document.querySelector('main.wrap');if(!m)return null;
+ v=document.createElement('section');v.className='view';v.id='view-board';m.appendChild(v);return v;
+}
+function listProgress(){return ((data&&data.progress)||[]).filter(vis)}
+function listNotices(){return ((data&&data.notices)||[]).filter(vis).sort((a,b)=>(b.pin?1:0)-(a.pin?1:0)||String(b.date||'').localeCompare(String(a.date||'')))}
+
+function renderBoard(){
+ const v=ensureView();if(!v)return;
+ const pr=listProgress(),nt=listNotices();
+ const head=`<div class="panel sf-bd-head"><h2>📌 ${en()?'Updates board':'لوحة المتابعة'}</h2><p class="muted">${en()?'Where we reached in each subject, plus announcements from the admin.':'آخر ما وصلنا إليه في كل مادة، والإعلانات من المسؤول.'}${data&&data.updated?` <small>· ${en()?'Updated':'آخر تحديث'} ${fdate(data.updated)}</small>`:''}</p></div>`;
+ const prog=`<div class="panel"><h3>📚 ${en()?'Where we reached':'وصلنا لفين'}</h3>${pr.length?`<div class="sf-bd-grid">${pr.map(p=>`<div class="sf-bd-item"><b>${esc(en()?(p.subject||p.ar):(p.ar||p.subject))}</b><p>${esc(tx(p,'text'))}</p>${p.date?`<small>${fdate(p.date)}</small>`:''}</div>`).join('')}</div>`:`<p class="muted">${en()?'Nothing posted yet.':'لسه مفيش حاجة منشورة.'}</p>`}</div>`;
+ const ann=`<div class="panel"><h3>📣 ${en()?'Announcements':'الإعلانات'}</h3>${nt.length?nt.map(n=>`<div class="sf-bd-note ${n.pin?'pin':''}"><div class="sf-bd-nt"><b>${n.pin?'📍 ':''}${esc(tx(n,'title'))}</b>${n.date?`<small>${fdate(n.date)}</small>`:''}</div>${tx(n,'text')?`<p>${esc(tx(n,'text'))}</p>`:''}</div>`).join(''):`<p class="muted">${en()?'No announcements.':'مفيش إعلانات.'}</p>`}</div>`;
+ v.innerHTML=`<div class="grid"><div>${head}${prog}${ann}</div></div>`;
+}
+
+function renderCard(){
+ const host=$('view-schedule');if(!host)return;
+ let c=$('sfBoardCard');
+ if(!c){c=document.createElement('button');c.type='button';c.id='sfBoardCard';c.addEventListener('click',()=>{if(window.sfGo)sfGo('board')});host.insertBefore(c,host.firstChild)}
+ const nt=listNotices(),pr=listProgress();
+ if(!data||(!nt.length&&!pr.length)){c.hidden=true;return}
+ c.hidden=false;c.className=isNew()?'has-new':'';
+ const first=nt[0];
+ c.innerHTML=`<span class="bd-ic">📌</span><span class="bd-tx"><b>${en()?'Updates board':'لوحة المتابعة'}${isNew()?`<i>${en()?'NEW':'جديد'}</i>`:''}</b><small>${first?esc(tx(first,'title')):(pr[0]?esc(tx(pr[0],'text')):'')}</small></span><span class="bd-ar">${en()?'›':'‹'}</span>`;
+}
+function refresh(){renderBoard();renderCard()}
+
+async function fetchBoard(){
+ const b=window.sfBase&&sfBase();if(!b||navigator.onLine===false)return;
+ try{const r=await fetch(b+'board.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+  if(j&&typeof j==='object'){data=j;LS(KEY,JSON.stringify(j));refresh()}}catch(e){}
+}
+/* mark as seen when the board is opened */
+const prev=window.sfOnView;
+window.sfOnView=function(v){if(prev)prev.apply(this,arguments);if(v==='board'){renderBoard();if(data)LS(SEEN,stamp());renderCard()}};
+const prevLang=window.sfOnLang;
+window.sfOnLang=function(){if(prevLang)prevLang.apply(this,arguments);refresh()};
+window.sfRefreshBoard=refresh;
+refresh();
+setTimeout(fetchBoard,3000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard()});
 })();
 
 </script>

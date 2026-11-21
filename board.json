@@ -1,0 +1,15 @@
+{
+  "updated": "2026-11-21",
+  "progress": [],
+  "notices": [
+    {
+      "title": "أهلاً بك في لوحة المتابعة",
+      "title_en": "Welcome to the updates board",
+      "text": "هنا هتلاقي آخر ما وصلنا إليه في كل مادة، وأي إعلانات مهمة. اللوحة بتتحدث لوحدها لما تفتح التطبيق وفي إنترنت.",
+      "text_en": "Here you'll find where we reached in each subject and any important announcements. It updates automatically when you open the app online.",
+      "date": "2026-11-21",
+      "pin": true,
+      "track": "all"
+    }
+  ]
+}
