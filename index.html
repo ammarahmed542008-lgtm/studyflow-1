@@ -2355,7 +2355,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.6.3';
+const VERSION='3.7.0';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2455,9 +2455,23 @@ function mount(){
  p.innerHTML=`<h2>🔄 ${ar()?'التحديثات':'Updates'}</h2><p class="muted">${ar()?'النسخة الحالية':'Current version'}: <b>${VERSION}</b></p>
  <div class="btnrow"><button type="button" class="btn outline" id="sfUpdCheck">${ar()?'تحقق من التحديث':'Check for updates'}</button><button type="button" class="btn" id="sfUpdInstall" hidden></button></div>
  <p class="muted" id="sfUpdStatus" style="margin-top:10px"></p>
+ <div id="sfPwaBox" hidden style="margin-top:12px"><button type="button" class="btn" id="sfPwaBtn">📲 ${ar()?'تثبيت التطبيق على الجهاز':'Install the app'}</button><p class="muted" id="sfPwaTip" style="margin-top:6px"></p></div>
  <details style="margin-top:8px"><summary class="muted">${ar()?'إعدادات متقدمة':'Advanced'}</summary><label style="display:block;margin-top:8px">${ar()?'رابط التحديث (اختياري)':'Update link (optional)'}<input id="sfUpdUrl" inputmode="url" placeholder="https://username.github.io/studyflow/" dir="ltr"></label><p class="muted">${ar()?'اتركه فاضي لو بتفتح التطبيق من رابطه على الإنترنت.':'Leave empty if you open the app from its web link.'}</p></details>`;
  grid.insertBefore(p,grid.firstChild);const sd=document.createElement('div');sd.hidden=true;
  $('sfUpdCheck').addEventListener('click',()=>check(true));
+ /* install as a browser app (PWA) */
+ try{
+  const box=$('sfPwaBox'),btn=$('sfPwaBtn'),tip=$('sfPwaTip');
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  if(!isNative()&&!standalone&&location.protocol!=='file:'){
+   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+   const show=()=>{box.hidden=false};
+   if(window.sfInstallEv){show()}
+   else if(ios){show();btn.hidden=true;tip.textContent=ar()?'على آيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».':'On iPhone: tap Share, then “Add to Home Screen”.'}
+   window.addEventListener('sfinstallready',show);
+   btn.addEventListener('click',async()=>{const ev=window.sfInstallEv;if(!ev){tip.textContent=ar()?'من قائمة المتصفح اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».':'Use the browser menu: “Install app” / “Add to Home screen”.';return}ev.prompt();try{await ev.userChoice}catch(e){}window.sfInstallEv=null;box.hidden=true});
+  }
+ }catch(e){}
  $('sfUpdInstall').addEventListener('click',install);
  const u=$('sfUpdUrl');u.value=LS('sf_update_url')||'';u.addEventListener('change',()=>{LS('sf_update_url',u.value.trim()||null);check(true)});
 }
@@ -2466,7 +2480,7 @@ mount();
 const last=Number(LS('sf_update_checked')||0);
 if(LS('sf_updated_to')===VERSION){LS('sf_updated_to',null);safe(()=>showFocusToast(ar()?'تم التحديث ✅':'Updated ✅',(ar()?'أنت الآن على النسخة ':'Now on version ')+VERSION,'✨',4500))}
 if(base()&&navigator.onLine!==false)setTimeout(()=>check(false),2500);
-window.sfBase=base;
+window.sfBase=base;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.sfInstallEv=e;window.dispatchEvent(new Event('sfinstallready'))});window.addEventListener('appinstalled',()=>{window.sfInstallEv=null;const b=document.getElementById('sfPwaBox');if(b)b.hidden=true});
 window.sfCheckUpdate=check;
 })();
 
