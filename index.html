@@ -806,6 +806,11 @@ body .lesson .time .tm{display:flex;align-items:baseline;gap:4px;white-space:now
 body.dark .sf-dr-logo.dk{width:100%!important;max-width:300px;max-height:none;margin:0 auto;mix-blend-mode:screen;filter:saturate(.9) brightness(1.2)!important;-webkit-mask-image:radial-gradient(closest-side,#000 85%,transparent 100%);mask-image:radial-gradient(closest-side,#000 85%,transparent 100%)}
 body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 
+/* 3.6.2: boxed page header */
+#sfPageHead{padding:10px 16px!important;margin:6px 0 14px;margin-inline-start:60px;min-height:0!important;border:1px solid var(--line,#ffffff26);border-radius:16px;background:var(--card,#ffffff10);box-shadow:0 4px 14px #0003}
+#sfPageHead b{font-size:20px}
+#sfPageHead small{font-size:12px}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2350,7 +2355,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.6.1';
+const VERSION='3.6.2';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2993,22 +2998,39 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard
 
 </script>
 <script id="sf-v3-back">
-/* Back button: step back through the tabs you visited instead of leaving the app */
+/* Back button: close overlays first, then step back through the tabs you visited */
 (()=>{
 const orig=window.switchView;if(typeof orig!=='function')return;
 const cur=()=>{const a=document.querySelector('.view.active');return a?a.id.replace(/^view-/,''):'schedule'};
-let restoring=false;
+const stack=[cur()];let restoring=false,skipPop=false;
 try{history.replaceState({sfv:cur()},'')}catch(e){}
 window.switchView=function(v){
  const before=cur();
  const r=orig.apply(this,arguments);
- if(!restoring&&v&&v!==before){try{history.pushState({sfv:v},'')}catch(e){}}
+ if(!restoring&&v&&v!==before){stack.push(v);try{history.pushState({sfv:v},'')}catch(e){}}
  return r;
 };
+const apply=v=>{restoring=true;try{orig(v);window.scrollTo(0,0)}finally{restoring=false}};
 window.addEventListener('popstate',e=>{
+ if(skipPop){skipPop=false;return}
  const st=e.state;
- if(st&&st.sfv){restoring=true;try{orig(st.sfv);window.scrollTo(0,0)}finally{restoring=false}}
+ if(st&&st.sfv){if(stack.length>1)stack.pop();apply(st.sfv)}
 });
+/* called by the Android shell (and usable from JS): true = handled, false = let the app close */
+window.sfBack=function(){
+ const up=document.getElementById('sfUpdOverlay');
+ if(up){const x=document.getElementById('sfuX');if(x){x.click();return true}}
+ const dr=document.getElementById('sfDrawer');
+ if(dr&&dr.classList.contains('on')){const s=document.getElementById('sfScrim');if(s)s.click();return true}
+ const open=document.querySelector('.exam-popup.open,#sfModal.open,.modal.open');
+ if(open){open.classList.remove('open');return true}
+ if(stack.length>1){
+  stack.pop();apply(stack[stack.length-1]);
+  skipPop=true;setTimeout(()=>{skipPop=false},400);try{history.back()}catch(e){skipPop=false}
+  return true;
+ }
+ return false;
+};
 })();
 
 </script>
