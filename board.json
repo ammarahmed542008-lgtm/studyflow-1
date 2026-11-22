@@ -1,15 +1,83 @@
 {
-  "updated": "2026-11-21",
-  "progress": [],
-  "notices": [
+ "updated": "2026-11-22",
+ "progress": [
+  {
+   "subject": "Anatomy",
+   "text": "Intro finished",
+   "text_en": "Intro finished",
+   "ar": "Anatomy",
+   "done": true,
+   "date": "2026-11-22",
+   "track": "all"
+  },
+  {
+   "subject": "Embryology",
+   "page": 34,
+   "text": "صفحة 34",
+   "text_en": "Page 34",
+   "date": "2026-11-22",
+   "track": "all"
+  },
+  {
+   "subject": "Physiology",
+   "page": 78,
+   "text": "صفحة 78",
+   "text_en": "Page 78",
+   "date": "2026-11-22",
+   "track": "all"
+  },
+  {
+   "subject": "Histology",
+   "page": 86,
+   "text": "صفحة 86",
+   "text_en": "Page 86",
+   "date": "2026-11-22",
+   "track": "all"
+  },
+  {
+   "subject": "Biochemistry",
+   "page": 82,
+   "text": "صفحة 82",
+   "text_en": "Page 82",
+   "date": "2026-11-22",
+   "track": "all"
+  }
+ ],
+ "notices": [
+  {
+   "title": "محتوى الفاينل",
+   "title_en": "Final exam content",
+   "pin": true,
+   "date": "2026-11-22",
+   "track": "all",
+   "text": "Biochemistry: محتوى الميدترم مش داخل في الفاينل.\nAnatomy: محتوى الميدترم داخل في الفاينل.\nباقي المواد: كل المحتوى داخل لحد دلوقتي، ما عدا Biochemistry.\nPhysiology: أول 18 صفحة مش داخلين في الفاينل.",
+   "text_en": "Biochemistry: midterm content is NOT in the final.\nAnatomy: midterm content IS in the final.\nOther subjects: everything so far is included, except Biochemistry.\nPhysiology: the first 18 pages are NOT included in the final.",
+   "items": [
     {
-      "title": "أهلاً بك في لوحة المتابعة",
-      "title_en": "Welcome to the updates board",
-      "text": "هنا هتلاقي آخر ما وصلنا إليه في كل مادة، وأي إعلانات مهمة. اللوحة بتتحدث لوحدها لما تفتح التطبيق وفي إنترنت.",
-      "text_en": "Here you'll find where we reached in each subject and any important announcements. It updates automatically when you open the app online.",
-      "date": "2026-11-21",
-      "pin": true,
-      "track": "all"
+     "ok": false,
+     "subject": "Biochemistry",
+     "text": "محتوى الميدترم مش داخل في الفاينل",
+     "text_en": "Midterm content is not in the final"
+    },
+    {
+     "ok": true,
+     "subject": "Anatomy",
+     "text": "محتوى الميدترم داخل في الفاينل",
+     "text_en": "Midterm content is in the final"
+    },
+    {
+     "ok": false,
+     "subject": "Physiology",
+     "text": "أول 18 صفحة مش داخلين في الفاينل",
+     "text_en": "The first 18 pages are not included in the final"
+    },
+    {
+     "ok": true,
+     "subject": "Histology · Embryology · باقي المواد",
+     "text": "كل المحتوى لحد دلوقتي داخل في الفاينل",
+     "text_en": "All content so far is included in the final"
     }
-  ]
+   ]
+  }
+ ]
 }
