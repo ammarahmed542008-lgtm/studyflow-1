@@ -784,6 +784,24 @@ body:not(.dark) .sf-dr-logo{filter:drop-shadow(0 4px 8px #0a2a6033)!important}
 #sfUpdOverlay .sfu-r b{color:#8ab4ff;direction:ltr;display:inline-block}
 #sfUpdOverlay .sfu-r ul{margin:4px 0 0;padding-inline-start:20px;color:#cdd7f5;font-size:13.5px;line-height:1.7}
 
+/* ---- 3.6.0 ---- */
+/* page header: title on one side, date on the opposite side */
+#sfPageHead{flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:10px;padding-top:10px}
+#sfPageHead b{font-size:22px;white-space:nowrap}
+#sfPageHead small{font-size:12.5px;text-align:end;line-height:1.4;opacity:.85}
+/* drawer logo spans the whole head */
+.sf-dr-head{display:flex;flex-direction:column;align-items:stretch!important;gap:4px}
+.sf-dr-head .sf-dr-logo{width:100%!important;max-height:150px;object-fit:contain}
+.sf-dr-head b{text-align:center}.sf-dr-head small{text-align:center;display:block}
+body:not(.dark) .sf-dr-head{align-items:stretch!important}
+/* lesson time block (12h) */
+body .lesson .time{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:76px;padding:8px 6px;line-height:1.15;font-size:15px;text-align:center;direction:ltr}
+body .lesson .time b{font-size:16px;font-weight:800;letter-spacing:.2px}
+body .lesson .time i{font-style:normal;font-size:10.5px;font-weight:700;opacity:.7;margin-top:-1px}
+body .lesson .time .tl{display:block;width:2px;height:10px;border-radius:2px;background:currentColor;opacity:.3;margin:3px 0}
+#sfUpdOverlay .sfu-sig{margin:14px 0 0;color:#9fb0e0;font-size:12.5px;line-height:1.7}#sfUpdOverlay .sfu-sig span{color:#cdd7f5;font-weight:700}
+body .lesson .time .tm{display:flex;align-items:baseline;gap:4px;white-space:nowrap}body .lesson .time i{margin-top:0}body .lesson .time{min-width:96px}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -1298,9 +1316,9 @@ function playFocusSound(type){if(type==='none')return;try{const AC=window.AudioC
 const sfSplashEl=document.getElementById('welcomeSplash');
 const sfHideSplash=()=>{if(sfSplashEl){sfSplashEl.classList.add('hide');sfSplashEl.setAttribute('aria-hidden','true');}};
 // Start the safety timer before app initialization so a slow/failing render cannot trap the user on the welcome screen.
-window.addEventListener('load',()=>{requestAnimationFrame(()=>setTimeout(sfHideSplash,Math.max(100,1200-performance.now())));},{once:true});
+window.addEventListener('load',()=>{requestAnimationFrame(()=>setTimeout(sfHideSplash,2200));},{once:true});
 // Fallback for browsers that already completed load before this script was attached.
-if(document.readyState==='complete') requestAnimationFrame(()=>setTimeout(sfHideSplash,Math.max(100,1200-performance.now())));
+if(document.readyState==='complete') requestAnimationFrame(()=>setTimeout(sfHideSplash,2200));
 window.addEventListener('error',e=>{console.error('StudyFlow runtime error:',e.message);});
 try { init(); } catch (err) { console.error('StudyFlow startup error:',err); const status=document.getElementById('notificationStatus'); if(status) status.textContent='تعذر تجهيز جزء من التطبيق. أعد فتح الملف إذا استمر الخطأ.'; }
 </script>
@@ -1936,9 +1954,9 @@ body:has(#sfFocusStage.sf-active) #focusSoundTest{display:none!important}
 (()=>{
 const $=id=>document.getElementById(id);
 const L=()=>(typeof lang!=='undefined'&&lang==='en')?1:0;
-const VIEWS=[['schedule','🗓️','الجدول','Schedule','main'],['official','🏫','الجدول الجامعي','University timetable','main'],['tasks','✅','مهام المذاكرة','Study tasks','main'],['exams','🎓','منظم الامتحانات','Exam planner','main'],['board','📌','لوحة المتابعة','Updates board','main'],['suggest','✨','اقترح لي تنظيماً','Suggest a plan','tools'],['focus','⏱️','التركيز','Focus timer','tools'],['forest','🌳','Focus Grove','Focus Grove','tools'],['ai-planner','🤖','مساعد الذكاء الاصطناعي','AI assistant','tools'],['settings','⚙️','الإعدادات والبيانات','Settings & data','app']];
-const NAV=[['schedule','🗓️','الجدول','Schedule'],['tasks','✅','المهام','Tasks'],['focus','⏱️','تركيز','Focus'],['forest','🌳','الغابة','Grove'],['exams','🎓','امتحانات','Exams']];
-const GROUPS={main:['الرئيسية','Main'],tools:['أدوات المذاكرة','Study tools'],app:['التطبيق','App']};
+const VIEWS=[['schedule','🗓️','الرئيسية','Home','main'],['official','🏫','الجدول الجامعي','University timetable','main'],['tasks','✅','مهام المذاكرة','Study tasks','main'],['exams','🎓','منظم الامتحانات','Exam planner','main'],['board','📌','لوحة المتابعة','Updates board','main'],['focus','⏱️','التركيز','Focus timer','tools'],['forest','🌳','Focus Grove','Focus Grove','tools'],['ai-planner','🤖','مساعد الذكاء الاصطناعي','AI assistant','tools'],['settings','⚙️','الإعدادات والبيانات','Settings & data','app']];
+const NAV=[['schedule','🗓️','الرئيسية','Home'],['tasks','✅','المهام','Tasks'],['focus','⏱️','تركيز','Focus'],['forest','🌳','الغابة','Grove'],['exams','🎓','امتحانات','Exams']];
+const GROUPS={main:['الأقسام','Sections'],tools:['أدوات المذاكرة','Study tools'],app:['التطبيق','App']};
 const THEMES=[['ocean','أوشن','Ocean','linear-gradient(135deg,#0a3a63,#2f86e6)'],['midnight','ليلي','Midnight','linear-gradient(135deg,#0a111d,#5aa9ff)'],['forest','غابة','Forest','linear-gradient(135deg,#08150f,#3fcf8e)'],['sunset','غروب','Sunset','linear-gradient(135deg,#7a2f0f,#ea7a3f)']];
 
 const TILE={schedule:['#4aa3ff','#2563eb','#1e4fc4'],tasks:['#43e0a0','#16a36b','#0f7f52'],focus:['#ffb347','#f2650f','#c24a05'],forest:['#6be27a','#1d9b4d','#13763a'],exams:['#b48cff','#7242e0','#5a2fc0'],official:['#3fd6d6','#0f9aa8','#0b7a86'],board:['#ff9db8','#e0467d','#b52c5c'],suggest:['#ffd35a','#f0a000','#b97800'],'ai-planner':['#8f9dff','#4f5fe8','#3a47c0'],settings:['#9fb0c8','#5b6f8c','#44566f']};
@@ -2065,6 +2083,7 @@ window.sfLessonOccurrences=function(daysAhead=14){
  return out.sort((a,b)=>a.start-b.start);
 };
 function until(ts){const m=Math.round((ts-Date.now())/6e4);if(m<=0)return '';const h=Math.floor(m/60),r=m%60;return en()?(h?h+'h ':'')+r+'m':(h?h+' س ':'')+r+' د'}
+const t12=t=>{const [h,m]=String(t||'0:0').split(':').map(Number);if(isNaN(h))return esc(t);const pm=h>=12;const hh=h%12||12;return '<span class="tm"><b>'+hh+':'+String(m||0).padStart(2,'0')+'</b><i>'+(en()?(pm?'PM':'AM'):(pm?'م':'ص'))+'</i></span>'};
 window.sfSchedRender=function(){
  const panel=$('myPersonalSchedulePanel');if(!panel)return;
  const W=getPersonalWeek();
@@ -2084,7 +2103,7 @@ window.sfSchedRender=function(){
   const s=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h,m).getTime(),e=new Date(d.getFullYear(),d.getMonth(),d.getDate(),eh,em).getTime();
   const live=now>=s&&now<e,soon=s>now&&s-now<864e5&&new Date().toDateString()===d.toDateString();
   const badge=l.done?`<span class="sf-badge ok">${tr('done')}</span>`:live?`<span class="sf-badge live">● ${en()?'Now':'جارية الآن'}</span>`:soon?`<span class="sf-badge">${en()?'in ':'بعد '}${until(s)}</span>`:'';
-  return `<article class="lesson ${l.done?'done':''} ${live?'now':''}"><div class="time">${esc(l.start)}<br>↓<br>${esc(l.end)}</div><div class="linfo"><div class="lname">${esc(l.name)}</div><div class="meta">${esc(l.subject)} · ${esc(l.kind)}${l.place?' · '+esc(l.place):''}</div>${badge}</div><div class="actions"><button type="button" class="mini" data-ldone="${esc(l.id)}" aria-label="done">✓</button><button type="button" class="mini" data-ldel="${esc(l.id)}" aria-label="delete">✕</button></div></article>`}).join(''):`<div class="empty">${tr('emptyDay')}</div>`);
+  return `<article class="lesson ${l.done?'done':''} ${live?'now':''}"><div class="time">${t12(l.start)}<span class="tl"></span>${t12(l.end)}</div><div class="linfo"><div class="lname">${esc(l.name)}</div><div class="meta">${esc(l.subject)} · ${esc(l.kind)}${l.place?' · '+esc(l.place):''}</div>${badge}</div><div class="actions"><button type="button" class="mini" data-ldone="${esc(l.id)}" aria-label="done">✓</button><button type="button" class="mini" data-ldel="${esc(l.id)}" aria-label="delete">✕</button></div></article>`}).join(''):`<div class="empty">${tr('emptyDay')}</div>`);
 };
 function setView(w,di){localStorage.setItem('sf_personal_view_week',String(w));localStorage.setItem('sf_my_schedule_week',String(w));if(di!=null)selectedDay=days()[di];sfSchedRender()}
 document.addEventListener('click',e=>{
@@ -2327,7 +2346,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.5.2';
+const VERSION='3.6.0';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2376,7 +2395,7 @@ function changesText(){
 function prompt(){
  if($('sfUpdOverlay')||sessionStorage.getItem('sf_upd_later')===remote.version)return;
  const o=document.createElement('div');o.id='sfUpdOverlay';
- o.innerHTML=`<div class="sfu-card"><button type="button" class="sfu-x" id="sfuX" aria-label="close">✕</button><div class="sfu-ic">🔄</div><h2>${ar()?'يوجد تحديث جديد':'New update available'}</h2><p class="sfu-v">${esc(remote.version)}</p>${changes()}<p class="sfu-s" id="sfuS"></p><div class="sfu-b"><button type="button" class="btn" id="sfuGo">${ar()?'⬇️ تنزيل التحديث الآن':'⬇️ Download now'}</button><button type="button" class="btn outline" id="sfuLater">${ar()?'لاحقاً':'Later'}</button></div></div>`;
+ o.innerHTML=`<div class="sfu-card"><button type="button" class="sfu-x" id="sfuX" aria-label="close">✕</button><div class="sfu-ic">🔄</div><h2>${ar()?'يوجد تحديث جديد':'New update available'}</h2><p class="sfu-v">${esc(remote.version)}</p>${changes()}<p class="sfu-s" id="sfuS"></p><div class="sfu-b"><button type="button" class="btn" id="sfuGo">${ar()?'⬇️ تنزيل التحديث الآن':'⬇️ Download now'}</button><button type="button" class="btn outline" id="sfuLater">${ar()?'لاحقاً':'Later'}</button></div><p class="sfu-sig">لاتنسونا من صالح دعائكم<br><span dir="ltr">By: Dr. Ammar A'Gaber</span></p></div>`;
  document.body.appendChild(o);
  let busy=false;
  const close=()=>{if(busy)return;try{sessionStorage.setItem('sf_upd_later',remote.version)}catch(e){}o.remove()};
@@ -2815,7 +2834,7 @@ function applyUI(){
  const tb=document.querySelector('.official-table tbody');
  if(tb)tb.innerHTML=gov?GOV_EXAMS.map(x=>`<tr><td>${esc2(x[0])}</td><td>${x[1].split('-').reverse().join('-')}</td></tr>`).join(''):ORIG.tb;
  const nt=document.querySelector('#view-official .official-table-wrap')?.parentElement?.querySelector('.note');
- if(nt)nt.innerHTML=gov?'مواعيد الامتحانات من جدول الكلية (آخر تعديل أصدرته الكلية). الامتحان العملي لـ Principles of microscopic & macroscopic structure يوم 24/12 مذكور في الجدول بدون كلمة «practical»؛ راجع الكلية للتأكيد.':'أماكن العملي: التشريح في المشرحة (مبنى طبي 2)، وباقي المواد حسب السكشن — S1 FR-5 · S2 FR-6 · S3 FR-9 · S4 FR-23 · S5 FR-26 · S6 FR-7 · S7 SD-5 · S8 SD-6 · S9 SD-7 · S10 FR-5. المحاضرات في المدرجات المبيّنة. (السبت 21/11 له أماكن خاصة حسب جدول اليوم.)';
+ if(nt){nt.style.display=gov?'':'none';nt.innerHTML=gov?'مواعيد الامتحانات من جدول الكلية (آخر تعديل أصدرته الكلية). الامتحان العملي لـ Principles of microscopic & macroscopic structure يوم 24/12 مذكور في الجدول بدون كلمة «practical»؛ راجع الكلية للتأكيد.':'';}
  safe(()=>{if(gov&&typeof subjects!=='undefined'&&!subjects.some(s=>s&&s.name==='Vertical')){subjects.push({name:'Vertical',active:true});if(typeof sfSave==='function')sfSave();if(typeof fillSelects==='function')fillSelects()}});
  /* chip + drawer */
  let chip=$('sfTrackChip');
