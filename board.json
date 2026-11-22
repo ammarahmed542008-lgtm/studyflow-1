@@ -1,6 +1,15 @@
 {
- "updated": "2026-11-22",
+ "updated": "2026-11-22T07:11",
  "progress": [
+  {
+   "subject": "Professionalism",
+   "page": 79,
+   "text": "صفحة 79",
+   "text_en": "Page 79",
+   "date": "2026-11-22",
+   "track": "all",
+   "ts": "2026-11-22T07:10"
+  },
   {
    "subject": "Anatomy",
    "text": "Intro finished",
@@ -8,7 +17,8 @@
    "ar": "Anatomy",
    "done": true,
    "date": "2026-11-22",
-   "track": "all"
+   "track": "all",
+   "ts": "2026-11-22T07:05"
   },
   {
    "subject": "Embryology",
@@ -16,7 +26,8 @@
    "text": "صفحة 34",
    "text_en": "Page 34",
    "date": "2026-11-22",
-   "track": "all"
+   "track": "all",
+   "ts": "2026-11-22T07:05"
   },
   {
    "subject": "Physiology",
@@ -24,7 +35,8 @@
    "text": "صفحة 78",
    "text_en": "Page 78",
    "date": "2026-11-22",
-   "track": "all"
+   "track": "all",
+   "ts": "2026-11-22T07:05"
   },
   {
    "subject": "Histology",
@@ -32,7 +44,8 @@
    "text": "صفحة 86",
    "text_en": "Page 86",
    "date": "2026-11-22",
-   "track": "all"
+   "track": "all",
+   "ts": "2026-11-22T07:05"
   },
   {
    "subject": "Biochemistry",
@@ -40,15 +53,8 @@
    "text": "صفحة 82",
    "text_en": "Page 82",
    "date": "2026-11-22",
-   "track": "all"
-  },
-  {
-   "subject": "Professionalism",
-   "page": 79,
-   "text": "صفحة 79",
-   "text_en": "Page 79",
-   "date": "2026-11-22",
-   "track": "all"
+   "track": "all",
+   "ts": "2026-11-22T07:05"
   }
  ],
  "notices": [
