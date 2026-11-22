@@ -777,6 +777,13 @@ body:not(.dark) .sf-dr-logo{filter:drop-shadow(0 4px 8px #0a2a6033)!important}
 .sf-bd-upd{display:inline-block;margin-inline-start:8px;padding:1px 9px;border-radius:20px;background:#e0467d;color:#fff!important;-webkit-text-fill-color:#fff;font-size:10px;font-weight:800;vertical-align:middle}
 .sf-bd-item.upd{border-color:#e0467d99}
 
+#sfUpdOverlay .sfu-card{position:relative;max-height:88vh;overflow:auto}
+#sfUpdOverlay .sfu-x{position:absolute;top:10px;inset-inline-start:10px;width:34px;height:34px;border-radius:50%;border:0;background:#ffffff1a;color:#fff;font-size:16px;cursor:pointer}
+#sfUpdOverlay .sfu-l{text-align:start;margin:0 0 12px;max-height:34vh;overflow:auto}
+#sfUpdOverlay .sfu-r{margin-bottom:8px}
+#sfUpdOverlay .sfu-r b{color:#8ab4ff;direction:ltr;display:inline-block}
+#sfUpdOverlay .sfu-r ul{margin:4px 0 0;padding-inline-start:20px;color:#cdd7f5;font-size:13.5px;line-height:1.7}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2316,7 +2323,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.4.2';
+const VERSION='3.5.0';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2343,24 +2350,50 @@ async function check(manual){
   remote=await r.json();LS('sf_update_checked',String(Date.now()));
   const newer=cmp(remote.version,VERSION)>0;
   if(inst){inst.hidden=!newer;inst.textContent=(ar()?'⬇️ تثبيت التحديث ':'⬇️ Install update ')+remote.version}
-  say(newer?(ar()?'يوجد تحديث جديد '+remote.version+(remote.notes?' — '+remote.notes:''):'Update '+remote.version+' available'):(ar()?'أنت على آخر نسخة ✅':'You are up to date ✅'));
+  say(newer?(ar()?'يوجد تحديث جديد '+remote.version+(changesText()?' — '+changesText():''):'Update '+remote.version+' available'):(ar()?'أنت على آخر نسخة ✅':'You are up to date ✅'));
   badge(newer);
   if(newer&&!manual)safe(prompt);
   return remote;
  }catch(e){say((ar()?'تعذر التحقق من التحديث: ':'Could not check: ')+e.message);return null}
  finally{if(chk)chk.disabled=false}
 }
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function changes(){
+ /* what really changed: every release newer than the installed one, up to the remote one */
+ const h=Array.isArray(remote.history)?remote.history.filter(x=>x&&cmp(x.version,VERSION)>0&&cmp(x.version,remote.version)<=0):[];
+ h.sort((x,y)=>cmp(y.version,x.version));
+ if(!h.length)return remote.notes?'<p class="sfu-n">'+esc(remote.notes)+'</p>':'';
+ return '<div class="sfu-l">'+h.map(x=>'<div class="sfu-r">'+(h.length>1?'<b>'+esc(x.version)+'</b>':'')+'<ul>'+(x.changes||[]).map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul></div>').join('')+'</div>';
+}
+function changesText(){
+ const h=Array.isArray(remote.history)?remote.history.filter(x=>x&&cmp(x.version,VERSION)>0&&cmp(x.version,remote.version)<=0):[];
+ return h.length?h.map(x=>(x.changes||[]).join('، ')).join('، '):(remote.notes||'');
+}
 function prompt(){
  if($('sfUpdOverlay')||sessionStorage.getItem('sf_upd_later')===remote.version)return;
  const o=document.createElement('div');o.id='sfUpdOverlay';
- o.innerHTML=`<div class="sfu-card"><div class="sfu-ic">🔄</div><h2>${ar()?'يوجد تحديث جديد':'New update available'}</h2><p class="sfu-v">${remote.version}</p>${remote.notes?`<p class="sfu-n">${String(remote.notes).replace(/</g,'&lt;')}</p>`:''}<p class="sfu-s" id="sfuS"></p><div class="sfu-b"><button type="button" class="btn" id="sfuGo">${ar()?'⬇️ تنزيل التحديث الآن':'⬇️ Download now'}</button><button type="button" class="btn outline" id="sfuLater">${ar()?'لاحقاً':'Later'}</button></div></div>`;
+ o.innerHTML=`<div class="sfu-card"><button type="button" class="sfu-x" id="sfuX" aria-label="close">✕</button><div class="sfu-ic">🔄</div><h2>${ar()?'يوجد تحديث جديد':'New update available'}</h2><p class="sfu-v">${esc(remote.version)}</p>${changes()}<p class="sfu-s" id="sfuS"></p><div class="sfu-b"><button type="button" class="btn" id="sfuGo">${ar()?'⬇️ تنزيل التحديث الآن':'⬇️ Download now'}</button><button type="button" class="btn outline" id="sfuLater">${ar()?'لاحقاً':'Later'}</button></div></div>`;
  document.body.appendChild(o);
- $('sfuLater').onclick=()=>{try{sessionStorage.setItem('sf_upd_later',remote.version)}catch(e){}o.remove()};
- $('sfuGo').onclick=async()=>{$('sfuGo').disabled=true;$('sfuLater').hidden=true;const st=$('sfUpdStatus');const w=setInterval(()=>{const t=st&&st.textContent;if(t&&$('sfuS'))$('sfuS').textContent=t},200);await install();setTimeout(()=>clearInterval(w),20000)};
+ let busy=false;
+ const close=()=>{if(busy)return;try{sessionStorage.setItem('sf_upd_later',remote.version)}catch(e){}o.remove()};
+ $('sfuLater').onclick=close;$('sfuX').onclick=close;
+ o.addEventListener('click',e=>{if(e.target===o)close()});
+ $('sfuGo').onclick=async()=>{
+  if(busy)return;busy=true;
+  const go=$('sfuGo'),lt=$('sfuLater'),s=$('sfuS');
+  go.disabled=true;lt.hidden=true;
+  const st=$('sfUpdStatus');
+  const w=setInterval(()=>{const t=st&&st.textContent;if(t&&s)s.textContent=t},200);
+  const fail=m=>{clearInterval(w);busy=false;go.disabled=false;lt.hidden=false;go.textContent=ar()?'🔁 إعادة المحاولة':'🔁 Retry';if(s)s.textContent=m};
+  /* watchdog: if nothing navigates away within 15s, give the buttons back */
+  const wd=setTimeout(()=>fail(ar()?'التحديث أخد وقت طويل. جرّب تاني أو اقفل الشاشة.':'Taking too long. Retry or close.'),15000);
+  const ok=await install();
+  if(ok===false){clearTimeout(wd);fail((st&&st.textContent)||(ar()?'فشل التحديث':'Update failed'))}
+ };
 }
 function badge(on){const b=$('sfDrawerBtnBadge');if(b)b.hidden=!on;const m=$('sfMenuBtn');if(m)m.classList.toggle('has-update',!!on)}
 async function install(){
- const b=base(),st=$('sfUpdStatus');if(!b||!remote)return;
+ const b=base(),st=$('sfUpdStatus');if(!b||!remote)return false;
  const say=t=>{if(st)st.textContent=t};
  try{
   say(ar()?'جاري تنزيل التحديث…':'Downloading…');
@@ -2381,7 +2414,7 @@ async function install(){
   say(ar()?'تم التنزيل — جاري إعادة التشغيل…':'Installed — restarting…');
   const u=new URL(b+(remote.file&&remote.file!=='index.html'?remote.file:''),location.href);u.searchParams.set('v',remote.version);
   setTimeout(()=>location.replace(u.toString()),600);
- }catch(e){say((ar()?'فشل التحديث: ':'Update failed: ')+e.message)}
+ }catch(e){say((ar()?'فشل التحديث: ':'Update failed: ')+e.message);return false}
 }
 function mount(){
  const host=$('view-settings');if(!host||$('sfUpdPanel'))return;
