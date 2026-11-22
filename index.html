@@ -2327,7 +2327,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.5.1';
+const VERSION='3.5.2';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2966,6 +2966,26 @@ window.sfRefreshBoard=refresh;
 refresh();
 setTimeout(fetchBoard,3000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard()});
+})();
+
+</script>
+<script id="sf-v3-back">
+/* Back button: step back through the tabs you visited instead of leaving the app */
+(()=>{
+const orig=window.switchView;if(typeof orig!=='function')return;
+const cur=()=>{const a=document.querySelector('.view.active');return a?a.id.replace(/^view-/,''):'schedule'};
+let restoring=false;
+try{history.replaceState({sfv:cur()},'')}catch(e){}
+window.switchView=function(v){
+ const before=cur();
+ const r=orig.apply(this,arguments);
+ if(!restoring&&v&&v!==before){try{history.pushState({sfv:v},'')}catch(e){}}
+ return r;
+};
+window.addEventListener('popstate',e=>{
+ const st=e.state;
+ if(st&&st.sfv){restoring=true;try{orig(st.sfv);window.scrollTo(0,0)}finally{restoring=false}}
+});
 })();
 
 </script>
