@@ -2003,7 +2003,7 @@ document.addEventListener('click',e=>{
  if(g){go(g.dataset.go);return}
  if(e.target.closest('#sfMenuBtn')){openD();return}
  if(e.target.id==='sfScrim'){closeD();return}
- const t=e.target.closest('[data-theme-pick]');if(t){theme=t.dataset.themePick;setTheme();return}
+ const t=e.target.closest('[data-theme-pick]');if(t){theme=t.dataset.themePick;setTheme();try{window.sfPushWidget&&sfPushWidget()}catch(x){}return}
  if(e.target.closest('#sfDrTrack')){closeD();if(window.sfChooseTrack)sfChooseTrack(false);return}
  if(e.target.closest('#sfDrLang')){closeD();$('langBtn').click();return}
  if(e.target.closest('#sfRunBar')){go(runView())}
@@ -2317,7 +2317,7 @@ window.sfBuildWidgetData=function(){
  const dn=ts=>{const d=new Date(ts),t=new Date(),n=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(t.getFullYear(),t.getMonth(),t.getDate()))/864e5);return n===0?(en()?'Today':'اليوم'):n===1?(en()?'Tomorrow':'غدًا'):d.toLocaleDateString(en()?'en-GB':'ar-EG',{weekday:'long'})};
  const all=[...OFFICIAL_EXAMS.map(x=>({n:x[0],date:x[1]})),...exams.map(x=>({n:x.name||'',date:x.date}))].filter(x=>x.date&&daysUntil(x.date)>=0).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
  const th=getComputedStyle(document.body);
- return {updated:now,lang,date:new Date().toLocaleDateString(en()?'en-GB':'ar-EG',{weekday:'long',day:'numeric',month:'long'}),week:Math.max(0,sfCurrentWeek()),
+ return {updated:now,lang,theme:(document.body.dataset.theme||'ocean'),date:new Date().toLocaleDateString(en()?'en-GB':'ar-EG',{weekday:'long',day:'numeric',month:'long'}),week:Math.max(0,sfCurrentWeek()),
   lectures:occ.filter(o=>!o.lesson.done&&o.end>now).slice(0,6).map(o=>({ts:o.start,te:o.end,d:dn(o.start),t:o.lesson.start,e:o.lesson.end,n:o.lesson.name,p:o.lesson.place||'',k:o.lesson.kind||'',live:o.start<=now&&now<o.end})),
   exams:all.map(x=>({n:x.n,date:x.date,days:daysUntil(x.date)})),
   tasks:tasks.filter(t=>!t.done).sort((a,b)=>String(a.due||'9').localeCompare(String(b.due||'9'))).slice(0,3).map(t=>({n:t.name,due:t.due||'',t:t.endTime||''})),
@@ -2355,7 +2355,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.6.2';
+const VERSION='3.6.3';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
