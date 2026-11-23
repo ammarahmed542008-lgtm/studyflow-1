@@ -1,6 +1,15 @@
 {
- "updated": "2026-11-22T12:02",
+ "updated": "2026-11-23T11:47",
  "progress": [
+  {
+   "subject": "Professionalism",
+   "page": 92,
+   "text": "صفحة 92",
+   "text_en": "Page 92",
+   "date": "2026-11-23",
+   "track": "all",
+   "ts": "2026-11-23T11:47"
+  },
   {
    "subject": "Histology",
    "page": 104,
@@ -18,15 +27,6 @@
    "date": "2026-11-22",
    "track": "all",
    "ts": "2026-11-22T12:02"
-  },
-  {
-   "subject": "Professionalism",
-   "page": 79,
-   "text": "صفحة 79",
-   "text_en": "Page 79",
-   "date": "2026-11-22",
-   "track": "all",
-   "ts": "2026-11-22T07:10"
   },
   {
    "subject": "Anatomy",
