@@ -2399,7 +2399,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.2';
+const VERSION='3.9.3';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3017,7 +3017,10 @@ function state(f){const n=Date.now();if(n<f.s)return {k:'soon',t:(en()?'Starts i
 function renderCard(){
  const host=$('view-schedule');if(!host)return;
  let c=$('sfFormCard');const fs=list();
- if(!fs.length){if(c)c.hidden=true;return}
+ /* shown only on Thursday/Friday, while one is open, or when the admin switches it on (formative_show in board.json) */
+ const d0=window.sfBoardData&&sfBoardData(),dow=new Date().getDay(),n0=Date.now();
+ const show=dow===4||dow===5||(d0&&d0.formative_show===true)||fs.some(f=>n0>=f.s&&n0<f.e);
+ if(!fs.length||!show){if(c)c.hidden=true;return}
  if(!c){c=document.createElement('div');c.id='sfFormCard';const bc=$('sfBoardCard');host.insertBefore(c,bc?bc.nextSibling:host.firstChild)}
  c.hidden=false;const dn=done();
  c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><span class="fm-hb">${generalLink()?`<a class="fm-plat" href="${esc(generalLink())}" target="_blank" rel="noopener">🔗 ${en()?'Platform':'المنصة'}</a>`:`<small class="fm-nolink">${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}<button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></span></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
