@@ -854,6 +854,16 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 .fm-plat{padding:7px 14px;border-radius:12px;background:var(--accent,#3b82f6);color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
 #sfFormCard .fm-hb .fm-nolink{font-size:12px;opacity:.7}
 
+/* 3.9.4 compact home: one chips row instead of big cards */
+#sfBoardCard{display:none!important}
+#sfChips{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;padding:2px 2px 6px;scrollbar-width:none}
+#sfChips::-webkit-scrollbar{display:none}
+#sfChips .chip{flex:none;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--soft);color:inherit;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;position:relative;white-space:nowrap}
+#sfChips .chip small{font-size:11.5px;font-weight:600;opacity:.8;padding-inline-start:8px;border-inline-start:1px solid var(--line)}
+#sfChips .chip.fm.live{border-color:#3fcf8e;color:#5fe0a5}#sfChips .chip.on{background:var(--accent,#3b82f6);color:#fff;border-color:transparent}
+#sfChips .dot{width:9px;height:9px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 0 3px #ff4d6d33}
+#sfFormCard{margin-top:0}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2399,7 +2409,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.3';
+const VERSION='3.9.4';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3014,14 +3024,30 @@ const generalLink=()=>{const d=window.sfBoardData&&sfBoardData();return okUrl(d&
 function state(f){const n=Date.now();if(n<f.s)return {k:'soon',t:(en()?'Starts in ':'يبدأ بعد ')+dur(f.s-n)};if(n<f.e)return {k:'live',t:(en()?'Open now · ends in ':'شغال الآن · ينتهي بعد ')+dur(f.e-n)};return {k:'end',t:en()?'Closed':'انتهى'}}
 
 /* ---------- home card ---------- */
+let open=false;
+function chips(fs,show){
+ const host=$('view-schedule');if(!host)return;
+ let r=$('sfChips');if(!r){r=document.createElement('div');r.id='sfChips';host.insertBefore(r,host.firstChild)}
+ const hasBoard=!!(window.sfBoardData&&sfBoardData()),isNew=window.sfBoardNew&&sfBoardNew();
+ const goal=window.sfPlanLine?sfPlanLine():'';
+ const nx=fs.filter(f=>!done()[key(f)]&&Date.now()<f.e)[0];
+ const st=nx?state(nx):null;
+ let h='';
+ if(hasBoard)h+=`<button type="button" class="chip" data-c="board">📌 ${en()?'Updates board':'لوحة المتابعة'}${isNew?'<i class="dot"></i>':''}</button>`;
+ if(fs.length&&show)h+=`<button type="button" class="chip fm ${st&&st.k==='live'?'live':''} ${open?'on':''}" data-c="form">📝 ${en()?'Formative':'الفورماتيف'}${st?`<small>${esc(st.t)}</small>`:''}</button>`;
+ if(goal)h+=`<button type="button" class="chip" data-c="goal">${esc(goal.replace(/^🎯\s*/,'🎯 '))}</button>`;
+ r.hidden=!h;r.innerHTML=h;
+ r.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const c=b.dataset.c;if(c==='form'){open=!open;renderCard()}else{try{sfGo('board')}catch(e){}}});
+}
 function renderCard(){
  const host=$('view-schedule');if(!host)return;
  let c=$('sfFormCard');const fs=list();
  /* shown only on Thursday/Friday, while one is open, or when the admin switches it on (formative_show in board.json) */
  const d0=window.sfBoardData&&sfBoardData(),dow=new Date().getDay(),n0=Date.now();
  const show=dow===4||dow===5||(d0&&d0.formative_show===true)||fs.some(f=>n0>=f.s&&n0<f.e);
- if(!fs.length||!show){if(c)c.hidden=true;return}
- if(!c){c=document.createElement('div');c.id='sfFormCard';const bc=$('sfBoardCard');host.insertBefore(c,bc?bc.nextSibling:host.firstChild)}
+ chips(fs,show);
+ if(!fs.length||!show||!open){if(c)c.hidden=true;return}
+ if(!c){c=document.createElement('div');c.id='sfFormCard';const r=$('sfChips');host.insertBefore(c,r?r.nextSibling:host.firstChild)}
  c.hidden=false;const dn=done();
  c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><span class="fm-hb">${generalLink()?`<a class="fm-plat" href="${esc(generalLink())}" target="_blank" rel="noopener">🔗 ${en()?'Platform':'المنصة'}</a>`:`<small class="fm-nolink">${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}<button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></span></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
   return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${fdt(f.s)} ← ${fdt(f.e)}</small>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open this formative':'فتح الفورماتيف'}</a>`:''}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
@@ -3201,7 +3227,7 @@ const prev=window.sfOnView;
 window.sfOnView=function(v){if(prev)prev.apply(this,arguments);if(v==='board'){renderBoard();if(data){LS(SEEN,stamp());saveSeen()}renderCard()}};
 const prevLang=window.sfOnLang;
 window.sfOnLang=function(){if(prevLang)prevLang.apply(this,arguments);refresh()};
-window.sfRefreshBoard=refresh;window.sfBoardData=()=>data;
+window.sfRefreshBoard=refresh;window.sfBoardData=()=>data;window.sfBoardNew=()=>isNew()&&!!data;
 refresh();
 setTimeout(fetchBoard,3000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard()});
