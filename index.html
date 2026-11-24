@@ -850,6 +850,10 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 .fm-morning{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
 .fm-morning input[type=time]{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:inherit;font:inherit;font-weight:800}
 
+#sfFormCard .fm-hb{display:flex;align-items:center;gap:8px}
+.fm-plat{padding:7px 14px;border-radius:12px;background:var(--accent,#3b82f6);color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+#sfFormCard .fm-hb .fm-nolink{font-size:12px;opacity:.7}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2395,7 +2399,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.1';
+const VERSION='3.9.2';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3004,7 +3008,9 @@ function list(){
 }
 const dur=ms=>{const m=Math.max(0,Math.round(ms/6e4));if(m<60)return en()?m+' min':m+' د';const h=Math.floor(m/60),r=m%60;if(h<24)return en()?`${h} h${r?' '+r+' m':''}`:`${h} س${r?' '+r+' د':''}`;const dd=Math.floor(h/24),hh=h%24;return en()?`${dd} d${hh?' '+hh+' h':''}`:`${dd} يوم${hh?' و'+hh+' س':''}`};
 const fdt=t=>new Date(t).toLocaleString(en()?'en-GB':'ar-EG',{weekday:'short',hour:'numeric',minute:'2-digit',hour12:true});
-const linkOf=f=>{const d=window.sfBoardData&&sfBoardData();const u=f.url||(d&&d.formative_url)||'';return /^https?:\/\//i.test(u)?u:''};
+const okUrl=u=>/^https?:\/\//i.test(u||'')?u:'';
+const linkOf=f=>okUrl(f.url); /* specific link for one formative */
+const generalLink=()=>{const d=window.sfBoardData&&sfBoardData();return okUrl(d&&d.formative_url)};
 function state(f){const n=Date.now();if(n<f.s)return {k:'soon',t:(en()?'Starts in ':'يبدأ بعد ')+dur(f.s-n)};if(n<f.e)return {k:'live',t:(en()?'Open now · ends in ':'شغال الآن · ينتهي بعد ')+dur(f.e-n)};return {k:'end',t:en()?'Closed':'انتهى'}}
 
 /* ---------- home card ---------- */
@@ -3014,8 +3020,8 @@ function renderCard(){
  if(!fs.length){if(c)c.hidden=true;return}
  if(!c){c=document.createElement('div');c.id='sfFormCard';const bc=$('sfBoardCard');host.insertBefore(c,bc?bc.nextSibling:host.firstChild)}
  c.hidden=false;const dn=done();
- c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
-  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${fdt(f.s)} ← ${fdt(f.e)}</small>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open the platform':'فتح المنصة'}</a>`:`<small class="fm-nolink">🔗 ${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
+ c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><span class="fm-hb">${generalLink()?`<a class="fm-plat" href="${esc(generalLink())}" target="_blank" rel="noopener">🔗 ${en()?'Platform':'المنصة'}</a>`:`<small class="fm-nolink">${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}<button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></span></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
+  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${fdt(f.s)} ← ${fdt(f.e)}</small>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open this formative':'فتح الفورماتيف'}</a>`:''}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
  c.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const d=done();d[b.dataset.fd]=!d[b.dataset.fd];if(!d[b.dataset.fd])delete d[b.dataset.fd];LS(DONE,JSON.stringify(d));renderCard();try{sfSyncNotifications()}catch(e){}});
  const g=$('fmGear');if(g)g.onclick=()=>{try{sfGo('settings');setTimeout(()=>{const p=$('sfFormPanel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'})},300)}catch(e){}};
 }
