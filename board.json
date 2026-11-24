@@ -1,19 +1,19 @@
 {
- "updated": "2026-11-24T13:03",
+ "updated": "2026-11-24T13:06",
  "progress": [
+  {
+   "subject": "Physiology",
+   "text": "من صفحة 1 إلى 46، ومن 56 إلى 78",
+   "text_en": "Pages 1–46 and 56–78",
+   "date": "2026-11-24",
+   "track": "all",
+   "ts": "2026-11-24T13:06"
+  },
   {
    "subject": "Embryology",
    "page": 43,
    "text": "صفحة 43",
    "text_en": "Page 43",
-   "date": "2026-11-24",
-   "track": "all",
-   "ts": "2026-11-24T13:03"
-  },
-  {
-   "subject": "Physiology",
-   "text": "من صفحة 1 إلى 46، ومن 56 لحد الموجود حاليًا في المنصة",
-   "text_en": "Pages 1–46, then 56 to what is currently on the platform",
    "date": "2026-11-24",
    "track": "all",
    "ts": "2026-11-24T13:03"
