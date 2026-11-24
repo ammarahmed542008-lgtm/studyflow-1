@@ -845,6 +845,11 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 #sfFormPanel input[type=checkbox]{width:20px;height:20px;accent-color:#3fcf8e}
 .fm-opts{display:flex;flex-wrap:wrap;gap:8px}.fm-opt{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;background:var(--soft);border:1px solid var(--line);font-size:13px;cursor:pointer}
 
+.fm-link{display:inline-block;margin-top:6px;padding:5px 12px;border-radius:12px;background:var(--accent,#3b82f6);color:#fff!important;font-size:12.5px;font-weight:700;text-decoration:none}
+.fm-t .fm-nolink{margin-top:6px;opacity:.7}
+.fm-morning{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.fm-morning input[type=time]{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:inherit;font:inherit;font-weight:800}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2390,7 +2395,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.0';
+const VERSION='3.9.1';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2985,7 +2990,7 @@ const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorag
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const track=()=>{try{return window.sfTrack?sfTrack():'ahlia'}catch(e){return 'ahlia'}};
 const CFG='sf_form_cfg',DONE='sf_form_done';
-const DEF={on:true,st:[180,30],en:[180,60],mute:{}};
+const DEF={on:true,st:[180,30],en:[180,60],mute:{},morning:true,mtime:'08:00'};
 const cfg=()=>{let c={};try{c=JSON.parse(LS(CFG)||'{}')||{}}catch(e){}return Object.assign({},DEF,c,{mute:Object.assign({},c.mute||{})})};
 const saveCfg=c=>{LS(CFG,JSON.stringify(c));try{window.sfSyncNotifications&&sfSyncNotifications()}catch(e){}};
 const done=()=>{try{return JSON.parse(LS(DONE)||'{}')||{}}catch(e){return {}}};
@@ -2999,6 +3004,7 @@ function list(){
 }
 const dur=ms=>{const m=Math.max(0,Math.round(ms/6e4));if(m<60)return en()?m+' min':m+' د';const h=Math.floor(m/60),r=m%60;if(h<24)return en()?`${h} h${r?' '+r+' m':''}`:`${h} س${r?' '+r+' د':''}`;const dd=Math.floor(h/24),hh=h%24;return en()?`${dd} d${hh?' '+hh+' h':''}`:`${dd} يوم${hh?' و'+hh+' س':''}`};
 const fdt=t=>new Date(t).toLocaleString(en()?'en-GB':'ar-EG',{weekday:'short',hour:'numeric',minute:'2-digit',hour12:true});
+const linkOf=f=>{const d=window.sfBoardData&&sfBoardData();const u=f.url||(d&&d.formative_url)||'';return /^https?:\/\//i.test(u)?u:''};
 function state(f){const n=Date.now();if(n<f.s)return {k:'soon',t:(en()?'Starts in ':'يبدأ بعد ')+dur(f.s-n)};if(n<f.e)return {k:'live',t:(en()?'Open now · ends in ':'شغال الآن · ينتهي بعد ')+dur(f.e-n)};return {k:'end',t:en()?'Closed':'انتهى'}}
 
 /* ---------- home card ---------- */
@@ -3009,7 +3015,7 @@ function renderCard(){
  if(!c){c=document.createElement('div');c.id='sfFormCard';const bc=$('sfBoardCard');host.insertBefore(c,bc?bc.nextSibling:host.firstChild)}
  c.hidden=false;const dn=done();
  c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
-  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${fdt(f.s)} ← ${fdt(f.e)}</small></div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
+  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${fdt(f.s)} ← ${fdt(f.e)}</small>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open the platform':'فتح المنصة'}</a>`:`<small class="fm-nolink">🔗 ${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
  c.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const d=done();d[b.dataset.fd]=!d[b.dataset.fd];if(!d[b.dataset.fd])delete d[b.dataset.fd];LS(DONE,JSON.stringify(d));renderCard();try{sfSyncNotifications()}catch(e){}});
  const g=$('fmGear');if(g)g.onclick=()=>{try{sfGo('settings');setTimeout(()=>{const p=$('sfFormPanel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'})},300)}catch(e){}};
 }
@@ -3020,6 +3026,8 @@ const EN=[[360,'قبل الانتهاء بـ6 ساعات','6 h before end'],[180
 window.sfFormativeNotifs=function(){
  const c=cfg(),out=[];if(!c.on)return out;const dn=done();
  list().forEach(f=>{if(c.mute[f.subject]||dn[key(f)])return;const k=key(f),what=tx(f,'content');
+  if(c.morning){const [hh,mm]=String(c.mtime||'08:00').split(':').map(Number),d0=new Date(f.s);d0.setHours(hh||0,mm||0,0,0);
+   if(d0.getTime()<f.s)out.push({tag:'F'+k+'m',at:d0.getTime(),title:en()?`📝 Today: ${f.subject} formative`:`📝 النهاردة فورماتيف ${f.subject}`,body:(what?what+' · ':'')+(en()?'Opens ':'يفتح ')+fdt(f.s)+(en()?' · closes ':' · يقفل ')+fdt(f.e)})}
   c.st.forEach(m=>{out.push({tag:'F'+k+'s'+m,at:f.s-m*6e4,title:m===0?(en()?`📝 ${f.subject} formative is open now`:`📝 فورماتيف ${f.subject} بدأ الآن`):(en()?`📝 ${f.subject} formative starts in ${dur(m*6e4)}`:`📝 فورماتيف ${f.subject} يبدأ بعد ${dur(m*6e4)}`),body:(what?what+' · ':'')+(en()?'Ends ':'ينتهي ')+fdt(f.e)})});
   c.en.forEach(m=>{out.push({tag:'F'+k+'e'+m,at:f.e-m*6e4,title:en()?`⏳ ${f.subject} formative closes in ${dur(m*6e4)}`:`⏳ فورماتيف ${f.subject} هيقفل بعد ${dur(m*6e4)}`,body:en()?'Not finished yet? Open the platform now.':'لسه ماخلّصتوش؟ ادخل المنصة دلوقتي.'})});
  });
@@ -3036,11 +3044,14 @@ function mount(){
  p.innerHTML=`<h2>📝 ${en()?'Formative reminders':'تنبيهات الفورماتيف'}</h2>
  <label class="fm-master"><input type="checkbox" id="fmOn" ${c.on?'checked':''}><span>${en()?'Remind me about formatives':'نبّهني بمواعيد الفورماتيف'}</span></label>
  <div id="fmBody" ${c.on?'':'style="opacity:.45;pointer-events:none"'}>
+ <div class="fm-morning"><label class="fm-master"><input type="checkbox" id="fmMorn" ${c.morning?'checked':''}><span>${en()?'Morning reminder on the day':'تنبيه صباحي يوم الفورماتيف'}</span></label><input type="time" id="fmMt" value="${esc(c.mtime||'08:00')}" ${c.morning?'':'disabled'}></div>
  <p class="muted" style="margin:12px 0 6px">${en()?'Before it opens':'قبل ما يفتح'}</p><div class="fm-opts">${ST.map(x=>chip('st',x[0],x)).join('')}</div>
  <p class="muted" style="margin:12px 0 6px">${en()?'Before it closes':'قبل ما يقفل'}</p><div class="fm-opts">${EN.map(x=>chip('en',x[0],x)).join('')}</div>
  ${subs.length?`<p class="muted" style="margin:12px 0 6px">${en()?'Subjects':'المواد'}</p><div class="fm-opts">${subs.map(s=>`<label class="fm-opt"><input type="checkbox" data-s="${esc(s)}" ${c.mute[s]?'':'checked'}><span>${esc(s)}</span></label>`).join('')}</div>`:''}
  <p class="muted" style="margin-top:10px">${en()?'Reminders stop once you tap “I finished it”. On the Android app they arrive even when the app is closed.':'التنبيهات بتقف لما تدوس «خلّصته». في تطبيق الأندرويد بتوصلك حتى لو التطبيق مقفول.'}</p></div>`;
  $('fmOn').onchange=e=>{const c=cfg();c.on=e.target.checked;saveCfg(c);$('fmBody').style.opacity=c.on?'':'.45';$('fmBody').style.pointerEvents=c.on?'':'none'};
+ $('fmMorn').onchange=e=>{const c=cfg();c.morning=e.target.checked;saveCfg(c);$('fmMt').disabled=!c.morning};
+ $('fmMt').onchange=e=>{const c=cfg();c.mtime=e.target.value||'08:00';saveCfg(c)};
  p.querySelectorAll('[data-g]').forEach(i=>i.onchange=()=>{const c=cfg(),g=i.dataset.g,m=+i.dataset.m;const a=new Set(c[g]);i.checked?a.add(m):a.delete(m);c[g]=[...a].sort((x,y)=>y-x);saveCfg(c)});
  p.querySelectorAll('[data-s]').forEach(i=>i.onchange=()=>{const c=cfg();if(i.checked)delete c.mute[i.dataset.s];else c.mute[i.dataset.s]=true;saveCfg(c)});
 }
