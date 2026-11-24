@@ -1,6 +1,23 @@
 {
- "updated": "2026-11-23T11:47",
+ "updated": "2026-11-24T13:03",
  "progress": [
+  {
+   "subject": "Embryology",
+   "page": 43,
+   "text": "صفحة 43",
+   "text_en": "Page 43",
+   "date": "2026-11-24",
+   "track": "all",
+   "ts": "2026-11-24T13:03"
+  },
+  {
+   "subject": "Physiology",
+   "text": "من صفحة 1 إلى 46، ومن 56 لحد الموجود حاليًا في المنصة",
+   "text_en": "Pages 1–46, then 56 to what is currently on the platform",
+   "date": "2026-11-24",
+   "track": "all",
+   "ts": "2026-11-24T13:03"
+  },
   {
    "subject": "Professionalism",
    "page": 92,
@@ -34,24 +51,6 @@
    "text_en": "Intro finished",
    "ar": "Anatomy",
    "done": true,
-   "date": "2026-11-22",
-   "track": "all",
-   "ts": "2026-11-22T07:05"
-  },
-  {
-   "subject": "Embryology",
-   "page": 34,
-   "text": "صفحة 34",
-   "text_en": "Page 34",
-   "date": "2026-11-22",
-   "track": "all",
-   "ts": "2026-11-22T07:05"
-  },
-  {
-   "subject": "Physiology",
-   "page": 78,
-   "text": "صفحة 78",
-   "text_en": "Page 78",
    "date": "2026-11-22",
    "track": "all",
    "ts": "2026-11-22T07:05"
