@@ -2423,7 +2423,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.5';
+const VERSION='3.9.6';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3134,37 +3134,43 @@ function items(){
  const my=getMy();
  return rows().filter(p=>p&&p.page!=null&&p.page!==''&&!isNaN(+p.page)).map(p=>{
   const cls=+p.page,has=my[p.subject]!=null&&my[p.subject]!=='',mine=has?+my[p.subject]:null;
-  return {subject:p.subject,cls,mine,total:+p.total>0?+p.total:null,exam:finalFor(p.subject)};
+  const rg=Array.isArray(p.ranges)&&p.ranges.length?p.ranges.map(r=>[+r[0],+r[1]]).filter(r=>r[0]>=1&&r[1]>=r[0]).sort((a,b)=>a[0]-b[0]):null;
+  return {subject:p.subject,cls,mine,total:+p.total>0?+p.total:null,exam:finalFor(p.subject),ranges:rg};
  });
 }
+/* pages the class covers (ranges) that are still ahead of the student's page */
+const segs=it=>it.ranges||[[1,it.cls]];
+const remaining=(it,mine)=>segs(it).reduce((n,[a,b])=>n+Math.max(0,b-Math.max(a-1,mine)),0);
+function take(it,mine,n){const out=[];for(const [a,b] of segs(it)){let s=Math.max(a,mine+1);if(s>b)continue;const e=Math.min(b,s+n-1);out.push([s,e]);n-=e-s+1;if(n<=0)break}return out}
+const segTxt=g=>g.map(([a,b])=>'\u2066'+(a===b?String(a):a+'–'+b)+'\u2069').join(en()?', ':'، ');
 function plan(it){
  if(it.mine==null)return {kind:'ask'};
  const ex=it.exam,left=ex?Math.max(1,daysTo(ex.date)-3):null;
  if(it.total&&left){const rem=Math.max(0,it.total-it.mine);return {kind:'finish',rem,days:left,per:Math.ceil(rem/left)}}
- const gap=it.cls-it.mine;
+ const gap=remaining(it,it.mine);
  if(gap>0)return {kind:'catch',rem:gap,days:3,per:Math.ceil(gap/3)};
- return {kind:'ok',ahead:-gap};
+ return {kind:'ok',ahead:Math.max(0,it.mine-it.cls)};
 }
 window.sfPlanToday=function(){
- const out=[];items().forEach(it=>{const p=plan(it);if((p.kind==='finish'||p.kind==='catch')&&p.per>0)out.push({subject:it.subject,per:p.per,from:it.mine+1,to:it.mine+p.per})});return out;
+ const out=[];items().forEach(it=>{const p=plan(it);if((p.kind==='finish'||p.kind==='catch')&&p.per>0)out.push({subject:it.subject,per:p.per})});return out;
 };
 window.sfPlanHTML=function(){
  const its=items();if(!its.length)return '';
  const done=getDone()[today()]||{};
  const rowsHtml=its.map(it=>{
-  const p=plan(it),pct=it.mine==null?0:Math.min(100,Math.round(it.mine/Math.max(it.cls,1)*100));
+  const p=plan(it),tot=segs(it).reduce((n,[a,b])=>n+b-a+1,0),pct=it.mine==null?0:Math.min(100,Math.round((tot-remaining(it,it.mine))/Math.max(tot,1)*100));
   let chip;
   if(it.mine==null)chip=`<span class="sf-pl-chip n">${en()?'Enter your page':'اكتب وصلت لفين'}</span>`;
-  else if(it.cls-it.mine>0)chip=`<span class="sf-pl-chip late">${en()?`${it.cls-it.mine} pages behind`:`متأخر ${it.cls-it.mine} صفحة`}</span>`;
+  else if(remaining(it,it.mine)>0)chip=`<span class="sf-pl-chip late">${en()?`${remaining(it,it.mine)} pages behind`:`متأخر ${remaining(it,it.mine)} صفحة`}</span>`;
   else if(it.mine>it.cls)chip=`<span class="sf-pl-chip ok">${en()?`+${it.mine-it.cls} ahead`:`متقدم +${it.mine-it.cls}`}</span>`;
   else chip=`<span class="sf-pl-chip ok">${en()?'On track ✓':'مواكب ✓'}</span>`;
-  return `<div class="sf-pl-row"><div class="sf-pl-top"><b>${esc(it.subject)}</b>${chip}</div><div class="sf-pl-bar"><i style="width:${pct}%"></i></div><div class="sf-pl-in"><span>${en()?'Class':'الجروب'}: <em>${it.cls}</em></span><label>${en()?'I reached':'أنا وصلت'} <input type="number" inputmode="numeric" min="0" max="2000" data-myp="${esc(it.subject)}" value="${it.mine==null?'':it.mine}" placeholder="—"></label></div></div>`;
+  return `<div class="sf-pl-row"><div class="sf-pl-top"><b>${esc(it.subject)}</b>${chip}</div><div class="sf-pl-bar"><i style="width:${pct}%"></i></div><div class="sf-pl-in"><span>${en()?'Class':'الجروب'}: <em>${it.ranges?esc(segTxt(it.ranges)):it.cls}</em></span><label>${en()?'I reached':'أنا وصلت'} <input type="number" inputmode="numeric" min="0" max="2000" data-myp="${esc(it.subject)}" value="${it.mine==null?'':it.mine}" placeholder="—"></label></div></div>`;
  }).join('');
  const todo=its.map(it=>({it,p:plan(it)})).filter(x=>(x.p.kind==='finish'||x.p.kind==='catch')&&x.p.per>0);
  const planHtml=todo.length?todo.map(({it,p})=>{
   const k=it.subject,on=!!done[k];
   const why=p.kind==='finish'?(en()?`${p.rem} pages left · ${p.days} days (finish 3 days before ${it.exam?esc(it.exam.name.replace(/^Final:?\s*/,'')):'the exam'})`:`باقي ${p.rem} صفحة · ${p.days} يوم (تخلص قبل الامتحان بـ3 أيام)`):(en()?`Catch up with the class · ${p.rem} pages over 3 days`:`لحاق بالجروب · باقي ${p.rem} صفحة على 3 أيام`);
-  return `<label class="sf-pl-todo ${on?'done':''}"><input type="checkbox" data-pld="${esc(k)}" ${on?'checked':''}><span class="tt"><b>${esc(k)}</b><small>${en()?`Pages ${it.mine+1} → ${it.mine+p.per}`:`من صفحة ${it.mine+1} إلى ${it.mine+p.per}`} · ${why}</small></span><span class="n">${p.per}<small>${en()?'pg/day':'ص/يوم'}</small></span></label>`;
+  return `<label class="sf-pl-todo ${on?'done':''}"><input type="checkbox" data-pld="${esc(k)}" ${on?'checked':''}><span class="tt"><b>${esc(k)}</b><small>${en()?'Pages ':'صفحات '}${segTxt(p.kind==='finish'&&!it.ranges?[[it.mine+1,it.mine+p.per]]:take(it,it.mine,p.per))} · ${why}</small></span><span class="n">${p.per}<small>${en()?'pg/day':'ص/يوم'}</small></span></label>`;
  }).join(''):`<p class="muted">${its.some(i=>i.mine==null)?(en()?'Enter the page you reached in each subject to get today’s plan.':'اكتب وصلت لفين في كل مادة فوق عشان تظهرلك خطة النهاردة.'):(en()?'You are on track in every subject 🎉':'أنت مواكب في كل المواد 🎉')}</p>`;
  return `<div class="panel sf-pl"><h3>📈 ${en()?'My progress':'تقدّمي أنا'}</h3><p class="muted">${en()?'Saved on your device only.':'بيتحفظ على جهازك بس.'}</p>${rowsHtml}</div><div class="panel sf-pl"><h3>🎯 ${en()?'Today’s plan':'خطة النهاردة'}</h3>${planHtml}</div>`;
 };
