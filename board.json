@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24T13:06",
+ "updated": "2026-11-25T01:10",
  "progress": [
   {
    "subject": "Physiology",
@@ -111,6 +111,23 @@
      "text_en": "Page 97 is cancelled by the doctor"
     }
    ]
+  }
+ ],
+ "formatives": [
+  {
+   "subject": "Biochemistry",
+   "start": "2026-11-26T21:00",
+   "end": "2026-11-27T21:00",
+   "content": "Carbohydrate metabolism",
+   "content_en": "Carbohydrate metabolism",
+   "track": "all"
+  },
+  {
+   "subject": "Professionalism",
+   "start": "2026-11-26T20:00",
+   "end": "2026-11-27T00:00",
+   "content": "",
+   "track": "all"
   }
  ]
 }
