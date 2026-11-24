@@ -3,11 +3,14 @@
  "progress": [
   {
    "subject": "Physiology",
-   "text": "من صفحة 1 إلى 46، ومن 56 إلى 78",
-   "text_en": "Pages 1–46 and 56–78",
+   "text": "صفحة 78",
+   "text_en": "Page 78",
    "date": "2026-11-24",
    "track": "all",
-   "ts": "2026-11-24T13:06"
+   "ts": "2026-11-24T13:06",
+   "page": 78,
+   "note": "المذاكَر: من 1 إلى 46، ومن 56 إلى 78",
+   "note_en": "Covered: 1–46 and 56–78"
   },
   {
    "subject": "Embryology",

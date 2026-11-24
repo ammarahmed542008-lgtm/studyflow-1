@@ -811,6 +811,25 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 #sfPageHead b{font-size:20px}
 #sfPageHead small{font-size:12px}
 
+/* 3.8.0 my progress + daily plan */
+.sf-pl .muted{margin:2px 0 10px}
+.sf-pl-row{padding:12px 14px;border-radius:16px;background:var(--soft);border:1px solid var(--line);margin-bottom:10px}
+.sf-pl-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sf-pl-chip{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.sf-pl-chip.ok{background:#1f9d6a33;color:#5fe0a5}.sf-pl-chip.late{background:#f59e0b2e;color:#ffb454}.sf-pl-chip.n{background:#ffffff14;color:var(--muted,#9fb0d0)}
+.sf-pl-bar{height:8px;border-radius:8px;background:#ffffff14;margin:10px 0;overflow:hidden}
+.sf-pl-bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--accent,#3b82f6),#5fe0a5);transition:width .3s}
+.sf-pl-in{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
+.sf-pl-in em{font-style:normal;font-weight:800;font-size:16px}
+.sf-pl-in label{display:flex;align-items:center;gap:8px}
+.sf-pl-in input{width:84px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card,#0000);color:inherit;font:inherit;font-weight:800;text-align:center}
+.sf-pl-todo{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--soft);border:1px solid var(--line);margin-bottom:10px;cursor:pointer}
+.sf-pl-todo input{width:22px;height:22px;accent-color:#3fcf8e;flex:none}
+.sf-pl-todo .tt{flex:1;min-width:0}.sf-pl-todo .tt b{display:block}.sf-pl-todo .tt small{display:block;color:var(--muted,#9fb0d0);font-size:12px;line-height:1.5;margin-top:2px}
+.sf-pl-todo .n{font-size:24px;font-weight:800;text-align:center;line-height:1}.sf-pl-todo .n small{display:block;font-size:10px;font-weight:600;opacity:.7;margin-top:2px}
+.sf-pl-todo.done{opacity:.55}.sf-pl-todo.done .tt b{text-decoration:line-through}
+#sfBoardCard .bd-goal{display:block;margin-top:2px;opacity:.95}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2355,7 +2374,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.7.0';
+const VERSION='3.8.0';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2940,6 +2959,72 @@ applyUI();
 })();
 
 </script>
+<script id="sf-v3-plan">
+/* StudyFlow v3.8: "my progress" vs the class + a daily revision plan (lives inside the updates board) */
+(()=>{
+'use strict';
+const en=()=>{try{return lang==='en'}catch(e){return false}};
+const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MY='sf_my_prog',DONE='sf_plan_done';
+const getMy=()=>{try{return JSON.parse(LS(MY)||'{}')||{}}catch(e){return {}}};
+const getDone=()=>{try{return JSON.parse(LS(DONE)||'{}')||{}}catch(e){return {}}};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const ALIAS={histology:['histology','microscopic'],embryology:['anatomy','embryo','macroscopic'],anatomy:['anatomy','macroscopic'],physiology:['physiology','cell biology'],biochemistry:['bio','cell biology'],professionalism:['professionalism','ethics']};
+const daysTo=d=>Math.ceil((new Date(d+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+function finalFor(subject){
+ let ex=[];try{ex=JSON.parse(LS('sf_exams')||'[]')||[]}catch(e){}
+ const keys=ALIAS[String(subject).toLowerCase()]||[String(subject).toLowerCase()];
+ const c=ex.filter(x=>x&&x.date&&/final/i.test((x.type||'')+' '+(x.name||''))&&daysTo(x.date)>=0&&keys.some(k=>String(x.name||'').toLowerCase().includes(k)));
+ c.sort((a,b)=>a.date.localeCompare(b.date));return c[0]||null;
+}
+const rows=()=>((window.sfBoardData&&sfBoardData())||{}).progress||[];
+function items(){
+ const my=getMy();
+ return rows().filter(p=>p&&p.page!=null&&p.page!==''&&!isNaN(+p.page)).map(p=>{
+  const cls=+p.page,has=my[p.subject]!=null&&my[p.subject]!=='',mine=has?+my[p.subject]:null;
+  return {subject:p.subject,cls,mine,total:+p.total>0?+p.total:null,exam:finalFor(p.subject)};
+ });
+}
+function plan(it){
+ if(it.mine==null)return {kind:'ask'};
+ const ex=it.exam,left=ex?Math.max(1,daysTo(ex.date)-3):null;
+ if(it.total&&left){const rem=Math.max(0,it.total-it.mine);return {kind:'finish',rem,days:left,per:Math.ceil(rem/left)}}
+ const gap=it.cls-it.mine;
+ if(gap>0)return {kind:'catch',rem:gap,days:3,per:Math.ceil(gap/3)};
+ return {kind:'ok',ahead:-gap};
+}
+window.sfPlanToday=function(){
+ const out=[];items().forEach(it=>{const p=plan(it);if((p.kind==='finish'||p.kind==='catch')&&p.per>0)out.push({subject:it.subject,per:p.per,from:it.mine+1,to:it.mine+p.per})});return out;
+};
+window.sfPlanHTML=function(){
+ const its=items();if(!its.length)return '';
+ const done=getDone()[today()]||{};
+ const rowsHtml=its.map(it=>{
+  const p=plan(it),pct=it.mine==null?0:Math.min(100,Math.round(it.mine/Math.max(it.cls,1)*100));
+  let chip;
+  if(it.mine==null)chip=`<span class="sf-pl-chip n">${en()?'Enter your page':'اكتب وصلت لفين'}</span>`;
+  else if(it.cls-it.mine>0)chip=`<span class="sf-pl-chip late">${en()?`${it.cls-it.mine} pages behind`:`متأخر ${it.cls-it.mine} صفحة`}</span>`;
+  else if(it.mine>it.cls)chip=`<span class="sf-pl-chip ok">${en()?`+${it.mine-it.cls} ahead`:`متقدم +${it.mine-it.cls}`}</span>`;
+  else chip=`<span class="sf-pl-chip ok">${en()?'On track ✓':'مواكب ✓'}</span>`;
+  return `<div class="sf-pl-row"><div class="sf-pl-top"><b>${esc(it.subject)}</b>${chip}</div><div class="sf-pl-bar"><i style="width:${pct}%"></i></div><div class="sf-pl-in"><span>${en()?'Class':'الجروب'}: <em>${it.cls}</em></span><label>${en()?'I reached':'أنا وصلت'} <input type="number" inputmode="numeric" min="0" max="2000" data-myp="${esc(it.subject)}" value="${it.mine==null?'':it.mine}" placeholder="—"></label></div></div>`;
+ }).join('');
+ const todo=its.map(it=>({it,p:plan(it)})).filter(x=>(x.p.kind==='finish'||x.p.kind==='catch')&&x.p.per>0);
+ const planHtml=todo.length?todo.map(({it,p})=>{
+  const k=it.subject,on=!!done[k];
+  const why=p.kind==='finish'?(en()?`${p.rem} pages left · ${p.days} days (finish 3 days before ${it.exam?esc(it.exam.name.replace(/^Final:?\s*/,'')):'the exam'})`:`باقي ${p.rem} صفحة · ${p.days} يوم (تخلص قبل الامتحان بـ3 أيام)`):(en()?`Catch up with the class · ${p.rem} pages over 3 days`:`لحاق بالجروب · باقي ${p.rem} صفحة على 3 أيام`);
+  return `<label class="sf-pl-todo ${on?'done':''}"><input type="checkbox" data-pld="${esc(k)}" ${on?'checked':''}><span class="tt"><b>${esc(k)}</b><small>${en()?`Pages ${it.mine+1} → ${it.mine+p.per}`:`من صفحة ${it.mine+1} إلى ${it.mine+p.per}`} · ${why}</small></span><span class="n">${p.per}<small>${en()?'pg/day':'ص/يوم'}</small></span></label>`;
+ }).join(''):`<p class="muted">${its.some(i=>i.mine==null)?(en()?'Enter the page you reached in each subject to get today’s plan.':'اكتب وصلت لفين في كل مادة فوق عشان تظهرلك خطة النهاردة.'):(en()?'You are on track in every subject 🎉':'أنت مواكب في كل المواد 🎉')}</p>`;
+ return `<div class="panel sf-pl"><h3>📈 ${en()?'My progress':'تقدّمي أنا'}</h3><p class="muted">${en()?'Saved on your device only.':'بيتحفظ على جهازك بس.'}</p>${rowsHtml}</div><div class="panel sf-pl"><h3>🎯 ${en()?'Today’s plan':'خطة النهاردة'}</h3>${planHtml}</div>`;
+};
+window.sfPlanBind=function(root){
+ root.querySelectorAll('[data-myp]').forEach(i=>i.addEventListener('change',()=>{const m=getMy(),v=i.value.trim();if(v==='')delete m[i.dataset.myp];else m[i.dataset.myp]=Math.max(0,Math.min(2000,parseInt(v,10)||0));LS(MY,JSON.stringify(m));if(window.sfRefreshBoard)sfRefreshBoard()}));
+ root.querySelectorAll('[data-pld]').forEach(i=>i.addEventListener('change',()=>{const d=getDone(),t=today();d[t]=d[t]||{};d[t][i.dataset.pld]=i.checked;const k=Object.keys(d).sort().slice(-7),o={};k.forEach(x=>o[x]=d[x]);LS(DONE,JSON.stringify(o));i.closest('.sf-pl-todo').classList.toggle('done',i.checked)}));
+};
+window.sfPlanLine=function(){const t=window.sfPlanToday();const n=t.reduce((a,x)=>a+x.per,0);return t.length?(en()?`🎯 Today: ${t.length} subjects · ${n} pages`:`🎯 هدف النهاردة: ${t.length} مواد · ${n} صفحة`):''};
+})();
+
+</script>
 <script id="sf-v3-board">
 /* StudyFlow v3.3: updates board — "where we reached" per subject + announcements.
    Content lives in board.json next to index.html (edited by the admin, fetched on launch, cached for offline). */
@@ -2979,7 +3064,8 @@ function renderBoard(){
  const prog=`<div class="panel"><h3>📚 ${en()?'Where we reached':'وصلنا لفين'}</h3>${pr.length?`<div class="sf-bd-grid">${pr.map(p=>`<div class="sf-bd-item ${p.done?'done':''} ${changed(p)?'upd':''}"><b>${esc(p.subject||p.ar)}${changed(p)?`<span class="sf-bd-upd">${en()?'Updated':'محدّث'}</span>`:''}</b>${p.page!=null&&p.page!==''?`<div class="sf-bd-pg"><span>${en()?'Page':'صفحة'}</span><em>${esc(p.page)}</em></div>`:''}${tx(p,'text')&&!(p.page!=null&&p.page!=='')?`<p class="sf-bd-tx">${p.done?'<i>✓</i> ':''}${esc(tx(p,'text'))}</p>`:''}${p.note||p.note_en?`<p class="sf-bd-tx">${p.done?'<i>✓</i> ':''}${esc(tx(p,'note'))}</p>`:''}${p.date?`<small>${fdate(p.date)}</small>`:''}</div>`).join('')}</div>`:`<p class="muted">${en()?'Nothing posted yet.':'لسه مفيش حاجة منشورة.'}</p>`}</div>`;
  const rows=n=>Array.isArray(n.items)&&n.items.length?`<ul class="sf-bd-rows">${n.items.map(i=>`<li class="${i.ok===false?'no':'yes'}"><span class="ic">${i.ok===false?'✕':'✓'}</span><span class="tt"><b>${esc(i.subject||'')}</b>${tx(i,'text')?`<small>${esc(tx(i,'text'))}</small>`:''}</span></li>`).join('')}</ul>`:'';
  const ann=`<div class="panel"><h3>📣 ${en()?'Announcements':'الإعلانات'}</h3>${nt.length?nt.map(n=>`<div class="sf-bd-note ${n.pin?'pin':''}"><div class="sf-bd-nt"><b>${n.pin?'📍 ':''}${esc(tx(n,'title'))}</b>${n.date?`<small>${fdate(n.date)}</small>`:''}</div>${rows(n)||(tx(n,'text')?`<p>${esc(tx(n,'text'))}</p>`:'')}</div>`).join(''):`<p class="muted">${en()?'No announcements.':'مفيش إعلانات.'}</p>`}</div>`;
- v.innerHTML=`<div class="grid"><div>${head}${prog}${ann}</div></div>`;
+ v.innerHTML=`<div class="grid"><div>${head}${prog}${(window.sfPlanHTML?sfPlanHTML():'')}${ann}</div></div>`;
+ try{window.sfPlanBind&&sfPlanBind(v)}catch(e){}
 }
 
 function renderCard(){
@@ -2990,7 +3076,7 @@ function renderCard(){
  if(!data||(!nt.length&&!pr.length)){c.hidden=true;return}
  c.hidden=false;c.className=isNew()?'has-new':'';
  const first=nt[0];
- c.innerHTML=`<span class="bd-ic">📌</span><span class="bd-tx"><b>${en()?'Updates board':'لوحة المتابعة'}${isNew()?`<i>${en()?'NEW':'جديد'}</i>`:''}</b><small>${first?esc(tx(first,'title')):(pr[0]?esc(tx(pr[0],'text')):'')}</small></span><span class="bd-ar">${en()?'›':'‹'}</span>`;
+ c.innerHTML=`<span class="bd-ic">📌</span><span class="bd-tx"><b>${en()?'Updates board':'لوحة المتابعة'}${isNew()?`<i>${en()?'NEW':'جديد'}</i>`:''}</b><small>${first?esc(tx(first,'title')):(pr[0]?esc(tx(pr[0],'text')):'')}</small>${(window.sfPlanLine&&sfPlanLine())?`<small class="bd-goal">${esc(sfPlanLine())}</small>`:''}</span><span class="bd-ar">${en()?'›':'‹'}</span>`;
 }
 function refresh(){renderBoard();renderCard()}
 
@@ -3004,7 +3090,7 @@ const prev=window.sfOnView;
 window.sfOnView=function(v){if(prev)prev.apply(this,arguments);if(v==='board'){renderBoard();if(data){LS(SEEN,stamp());saveSeen()}renderCard()}};
 const prevLang=window.sfOnLang;
 window.sfOnLang=function(){if(prevLang)prevLang.apply(this,arguments);refresh()};
-window.sfRefreshBoard=refresh;
+window.sfRefreshBoard=refresh;window.sfBoardData=()=>data;
 refresh();
 setTimeout(fetchBoard,3000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchBoard()});
