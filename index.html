@@ -887,6 +887,8 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 
 .sf-bd-rgs{display:flex;flex-direction:column;gap:4px}.sf-bd-rgs em{font-style:normal;font-size:30px;font-weight:800;line-height:1.15;color:var(--blue,#2b7fff)}
 
+.fm-cd{margin-top:6px;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent,#3ddc97)}.fm-row.end .fm-cd{color:var(--muted,#9fb0d0);font-weight:600}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2432,7 +2434,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.10';
+const VERSION='3.9.11';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3051,6 +3053,13 @@ const fdt=t=>{const d=new Date(t),L=en()?'en-GB':'ar-EG';const day=d.toLocaleDat
 const okUrl=u=>/^https?:\/\//i.test(u||'')?u:'';
 const linkOf=f=>okUrl(f.url); /* specific link for one formative */
 const generalLink=()=>{const d=window.sfBoardData&&sfBoardData();return okUrl(d&&d.formative_url)};
+const pad=n=>String(n).padStart(2,'0');
+function cdTxt(f){const n=Date.now();let ms,lb;
+ if(n<f.s){ms=f.s-n;lb=en()?'Opens in':'يفتح بعد'}else if(n<f.e){ms=f.e-n;lb=en()?'Closes in':'يقفل بعد'}else return {t:en()?'Closed':'انتهى',z:true};
+ const sec=Math.floor(ms/1000),d=Math.floor(sec/86400),h=Math.floor(sec%86400/3600),m=Math.floor(sec%3600/60),x=sec%60;
+ return {t:lb+' \u2066'+(d?d+(en()?'d ':' يوم '):'')+pad(h)+':'+pad(m)+':'+pad(x)+'\u2069',z:false};
+}
+function tick(){document.querySelectorAll('.fm-cd[data-fs]').forEach(e=>{const r=cdTxt({s:+e.dataset.fs,e:+e.dataset.fe});if(e.textContent!==r.t)e.textContent=r.t;const row=e.closest('.fm-row');if(row){const k=Date.now()<+e.dataset.fs?'soon':Date.now()<+e.dataset.fe?'live':'end';if(!row.classList.contains(k)){renderCard()}}})}
 function state(f){const n=Date.now();if(n<f.s)return {k:'soon',t:(en()?'Starts in ':'يبدأ بعد ')+dur(f.s-n)};if(n<f.e)return {k:'live',t:(en()?'Open now · ends in ':'شغال الآن · ينتهي بعد ')+dur(f.e-n)};return {k:'end',t:en()?'Closed':'انتهى'}}
 
 /* ---------- home card ---------- */
@@ -3079,7 +3088,7 @@ function renderCard(){
  if(!c){c=document.createElement('div');c.id='sfFormCard';const r=$('sfChips');host.insertBefore(c,r?r.nextSibling:host.firstChild)}
  c.hidden=false;const dn=done();
  c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><span class="fm-hb">${generalLink()?`<a class="fm-plat" href="${esc(generalLink())}" target="_blank" rel="noopener">🔗 ${en()?'Platform':'المنصة'}</a>`:`<small class="fm-nolink">${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}<button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></span></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
-  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${en()?"Opens":"يفتح"}: ${fds(f.s)}<br>${en()?"Closes":"يقفل"}: ${fds(f.e)}</small>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open this formative':'فتح الفورماتيف'}</a>`:''}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
+  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${en()?"Opens":"يفتح"}: ${fds(f.s)}<br>${en()?"Closes":"يقفل"}: ${fds(f.e)}</small><div class="fm-cd" data-fs="${f.s}" data-fe="${f.e}">${cdTxt(f).t}</div>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open this formative':'فتح الفورماتيف'}</a>`:''}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):(st.k==='soon'?(en()?'Not open yet':'لسه ما فتحش'):st.k==='live'?(en()?'Open now':'شغال الآن'):(en()?'Closed':'انتهى'))}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
  c.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const d=done();d[b.dataset.fd]=!d[b.dataset.fd];if(!d[b.dataset.fd])delete d[b.dataset.fd];LS(DONE,JSON.stringify(d));renderCard();try{sfSyncNotifications()}catch(e){}});
  const g=$('fmGear');if(g)g.onclick=()=>{try{sfGo('settings');setTimeout(()=>{const p=$('sfFormPanel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'})},300)}catch(e){}};
 }
@@ -3121,6 +3130,7 @@ function mount(){
 }
 window.sfFormRender=function(){try{renderCard();mount()}catch(e){console.warn(e)}};
 setInterval(()=>{if(!document.hidden)try{renderCard()}catch(e){}},30000);
+setInterval(()=>{if(!document.hidden)try{tick()}catch(e){}},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)try{renderCard()}catch(e){}});
 })();
 
