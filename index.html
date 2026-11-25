@@ -885,6 +885,8 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 .sf-pl-rg label{display:flex;align-items:center;gap:8px;font-size:13px}
 .sf-pl-rg input{width:92px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card,#0000);color:inherit;font:inherit;font-weight:800;text-align:center}
 
+.sf-bd-rgs{display:flex;flex-direction:column;gap:4px}.sf-bd-rgs em{font-style:normal;font-size:30px;font-weight:800;line-height:1.15;color:var(--blue,#2b7fff)}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2430,7 +2432,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.7';
+const VERSION='3.9.8';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3247,7 +3249,7 @@ function renderBoard(){
  const v=ensureView();if(!v)return;
  const pr=listProgress(),nt=listNotices();
  const head=`<div class="panel sf-bd-head"><h2>📌 ${en()?'Updates board':'لوحة المتابعة'}</h2><p class="muted">${en()?'Where we reached in each subject, plus announcements from the admin.':'آخر ما وصلنا إليه في كل مادة، والإعلانات من المسؤول.'}${data&&data.updated?` <small>· ${en()?'Updated':'آخر تحديث'} ${fdate(data.updated)}</small>`:''}</p></div>`;
- const prog=`<div class="panel"><h3>📚 ${en()?'Where we reached':'وصلنا لفين'}</h3>${pr.length?`<div class="sf-bd-grid">${pr.map(p=>`<div class="sf-bd-item ${p.done?'done':''} ${changed(p)?'upd':''}"><b>${esc(p.subject||p.ar)}${changed(p)?`<span class="sf-bd-upd">${en()?'Updated':'محدّث'}</span>`:''}</b>${p.page!=null&&p.page!==''?`<div class="sf-bd-pg"><span>${en()?'Page':'صفحة'}</span><em>${esc(p.page)}</em></div>`:''}${tx(p,'text')&&!(p.page!=null&&p.page!=='')?`<p class="sf-bd-tx">${p.done?'<i>✓</i> ':''}${esc(tx(p,'text'))}</p>`:''}${p.note||p.note_en?`<p class="sf-bd-tx">${p.done?'<i>✓</i> ':''}${esc(tx(p,'note'))}</p>`:''}${p.date?`<small>${fdate(p.date)}</small>`:''}</div>`).join('')}</div>`:`<p class="muted">${en()?'Nothing posted yet.':'لسه مفيش حاجة منشورة.'}</p>`}</div>`;
+ const prog=`<div class="panel"><h3>📚 ${en()?'Where we reached':'وصلنا لفين'}</h3>${pr.length?`<div class="sf-bd-grid">${pr.map(p=>`<div class="sf-bd-item ${p.done?'done':''} ${changed(p)?'upd':''}"><b>${esc(p.subject||p.ar)}${changed(p)?`<span class="sf-bd-upd">${en()?'Updated':'محدّث'}</span>`:''}</b>${Array.isArray(p.ranges)&&p.ranges.length?`<div class="sf-bd-rgs">${p.ranges.map(r=>`<em>${en()?'From':'من'} \u2066${+r[0]}\u2069 ${en()?'to':'إلى'} \u2066${+r[1]}\u2069</em>`).join('')}</div>`:p.page!=null&&p.page!==''?`<div class="sf-bd-pg"><span>${en()?'Page':'صفحة'}</span><em>${esc(p.page)}</em></div>`:''}${tx(p,'text')&&!(p.page!=null&&p.page!=='')?`<p class="sf-bd-tx">${p.done?'<i>✓</i> ':''}${esc(tx(p,'text'))}</p>`:''}${(p.note||p.note_en)&&!(Array.isArray(p.ranges)&&p.ranges.length)?`<p class="sf-bd-tx">${p.done?'<i>✓</i> ':''}${esc(tx(p,'note'))}</p>`:''}${p.date?`<small>${fdate(p.date)}</small>`:''}</div>`).join('')}</div>`:`<p class="muted">${en()?'Nothing posted yet.':'لسه مفيش حاجة منشورة.'}</p>`}</div>`;
  const rows=n=>Array.isArray(n.items)&&n.items.length?`<ul class="sf-bd-rows">${n.items.map(i=>`<li class="${i.ok===false?'no':'yes'}"><span class="ic">${i.ok===false?'✕':'✓'}</span><span class="tt"><b>${esc(i.subject||'')}</b>${tx(i,'text')?`<small>${esc(tx(i,'text'))}</small>`:''}</span></li>`).join('')}</ul>`:'';
  const ann=`<div class="panel"><h3>📣 ${en()?'Announcements':'الإعلانات'}</h3>${nt.length?nt.map(n=>`<div class="sf-bd-note ${n.pin?'pin':''}"><div class="sf-bd-nt"><b>${n.pin?'📍 ':''}${esc(tx(n,'title'))}</b>${n.date?`<small>${fdate(n.date)}</small>`:''}</div>${rows(n)||(tx(n,'text')?`<p>${esc(tx(n,'text'))}</p>`:'')}</div>`).join(''):`<p class="muted">${en()?'No announcements.':'مفيش إعلانات.'}</p>`}</div>`;
  v.innerHTML=`<div class="grid"><div>${head}${prog}${(window.sfPlanHTML?sfPlanHTML():'')}${ann}</div></div>`;
