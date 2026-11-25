@@ -2432,7 +2432,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.9';
+const VERSION='3.9.10';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3045,10 +3045,8 @@ const dur=ms=>{const m=Math.max(0,Math.round(ms/6e4));
  const h=Math.floor(m/60),r=m%60,hw=h===1?'ساعة':h===2?'ساعتين':h<=10?h+' ساعات':h+' ساعة';
  if(h<24)return hw+(r===30?' ونص':r?' و'+r+' دقيقة':'');
  const dd=Math.floor(h/24),hh=h%24;return (dd===1?'يوم':dd===2?'يومين':dd+' أيام')+(hh?' و'+hh+' ساعة':'')};
-const fds=t=>{const d=new Date(t),L=en()?'en-GB':'ar-EG';if(d.getHours()===0&&d.getMinutes()===0){const q=new Date(t-6e4);return q.toLocaleDateString(L,{weekday:'short',day:'numeric',month:'short'})+(en()?' · midnight':' · منتصف الليل')}return d.toLocaleDateString(L,{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString(L,{hour:'numeric',minute:'2-digit',hour12:true})};
+const fds=t=>{const d=new Date(t),L=en()?'en-GB':'ar-EG';return d.toLocaleDateString(L,{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString(L,{hour:'numeric',minute:'2-digit',hour12:true})};
 const fdt=t=>{const d=new Date(t),L=en()?'en-GB':'ar-EG';const day=d.toLocaleDateString(L,{weekday:'long',day:'numeric',month:'long'});
- const mid=d.getHours()===0&&d.getMinutes()===0;
- if(mid){const p=new Date(t-6e4);const pd=p.toLocaleDateString(L,{weekday:'long',day:'numeric',month:'long'});return en()?`${pd}, midnight (12:00 AM)`:`${pd} منتصف الليل (12:00 ص)`}
  return day+(en()?', ':' · ')+d.toLocaleTimeString(L,{hour:'numeric',minute:'2-digit',hour12:true})};
 const okUrl=u=>/^https?:\/\//i.test(u||'')?u:'';
 const linkOf=f=>okUrl(f.url); /* specific link for one formative */
