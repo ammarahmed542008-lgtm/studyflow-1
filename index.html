@@ -2434,7 +2434,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.12';
+const VERSION='3.9.13';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2861,6 +2861,8 @@ const GOV={};
 })();
 
 [10,11,12].forEach(w=>{AH_WEEKS[w]=ahWeek(w)});
+/* extra Anatomy lecture, Saturday 28-11-2026 (week 11), 2-4 pm */
+(function(){const d=(AH_WEEKS[11]||[]).find(x=>x.day==='Saturday');if(d&&!d.slots.some(x=>x.time===SLOT.D))d.slots.push({time:SLOT.D,items:[{name:'Anatomy lec (extra)',lecture:true}]})})();
 
 /* ---------- public helpers used across the app ---------- */
 const track=()=>LS('sf_track')==='gov'?'gov':'ahlia';
