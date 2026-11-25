@@ -2434,7 +2434,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.11';
+const VERSION='3.9.12';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3057,7 +3057,8 @@ const pad=n=>String(n).padStart(2,'0');
 function cdTxt(f){const n=Date.now();let ms,lb;
  if(n<f.s){ms=f.s-n;lb=en()?'Opens in':'يفتح بعد'}else if(n<f.e){ms=f.e-n;lb=en()?'Closes in':'يقفل بعد'}else return {t:en()?'Closed':'انتهى',z:true};
  const sec=Math.floor(ms/1000),d=Math.floor(sec/86400),h=Math.floor(sec%86400/3600),m=Math.floor(sec%3600/60),x=sec%60;
- return {t:lb+' \u2066'+(d?d+(en()?'d ':' يوم '):'')+pad(h)+':'+pad(m)+':'+pad(x)+'\u2069',z:false};
+ const dw=!d?'':en()?d+'d ':(d===1?'يوم':d===2?'يومين':d<=10?d+' أيام':d+' يوم')+' و';
+ return {t:lb+' '+dw+(dw?' ':'')+'\u2066'+pad(h)+':'+pad(m)+':'+pad(x)+'\u2069',z:false};
 }
 function tick(){document.querySelectorAll('.fm-cd[data-fs]').forEach(e=>{const r=cdTxt({s:+e.dataset.fs,e:+e.dataset.fe});if(e.textContent!==r.t)e.textContent=r.t;const row=e.closest('.fm-row');if(row){const k=Date.now()<+e.dataset.fs?'soon':Date.now()<+e.dataset.fe?'live':'end';if(!row.classList.contains(k)){renderCard()}}})}
 function state(f){const n=Date.now();if(n<f.s)return {k:'soon',t:(en()?'Starts in ':'يبدأ بعد ')+dur(f.s-n)};if(n<f.e)return {k:'live',t:(en()?'Open now · ends in ':'شغال الآن · ينتهي بعد ')+dur(f.e-n)};return {k:'end',t:en()?'Closed':'انتهى'}}
