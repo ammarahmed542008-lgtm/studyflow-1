@@ -2432,7 +2432,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.8';
+const VERSION='3.9.9';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3039,8 +3039,17 @@ function list(){
   .map(f=>Object.assign({},f,{s:new Date(f.start).getTime(),e:new Date(f.end).getTime()}))
   .filter(f=>!isNaN(f.s)&&!isNaN(f.e)&&f.e>now-6*36e5).sort((a,b)=>a.s-b.s);
 }
-const dur=ms=>{const m=Math.max(0,Math.round(ms/6e4));if(m<60)return en()?m+' min':m+' د';const h=Math.floor(m/60),r=m%60;if(h<24)return en()?`${h} h${r?' '+r+' m':''}`:`${h} س${r?' '+r+' د':''}`;const dd=Math.floor(h/24),hh=h%24;return en()?`${dd} d${hh?' '+hh+' h':''}`:`${dd} يوم${hh?' و'+hh+' س':''}`};
-const fdt=t=>new Date(t).toLocaleString(en()?'en-GB':'ar-EG',{weekday:'short',hour:'numeric',minute:'2-digit',hour12:true});
+const dur=ms=>{const m=Math.max(0,Math.round(ms/6e4));
+ if(en()){if(m<60)return m+' min';const h=Math.floor(m/60),r=m%60;if(h<24)return `${h} h${r?' '+r+' m':''}`;const dd=Math.floor(h/24),hh=h%24;return `${dd} d${hh?' '+hh+' h':''}`}
+ if(m<60)return m===30?'نص ساعة':(m===1?'دقيقة':m===2?'دقيقتين':m<=10?m+' دقائق':m+' دقيقة');
+ const h=Math.floor(m/60),r=m%60,hw=h===1?'ساعة':h===2?'ساعتين':h<=10?h+' ساعات':h+' ساعة';
+ if(h<24)return hw+(r===30?' ونص':r?' و'+r+' دقيقة':'');
+ const dd=Math.floor(h/24),hh=h%24;return (dd===1?'يوم':dd===2?'يومين':dd+' أيام')+(hh?' و'+hh+' ساعة':'')};
+const fds=t=>{const d=new Date(t),L=en()?'en-GB':'ar-EG';if(d.getHours()===0&&d.getMinutes()===0){const q=new Date(t-6e4);return q.toLocaleDateString(L,{weekday:'short',day:'numeric',month:'short'})+(en()?' · midnight':' · منتصف الليل')}return d.toLocaleDateString(L,{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString(L,{hour:'numeric',minute:'2-digit',hour12:true})};
+const fdt=t=>{const d=new Date(t),L=en()?'en-GB':'ar-EG';const day=d.toLocaleDateString(L,{weekday:'long',day:'numeric',month:'long'});
+ const mid=d.getHours()===0&&d.getMinutes()===0;
+ if(mid){const p=new Date(t-6e4);const pd=p.toLocaleDateString(L,{weekday:'long',day:'numeric',month:'long'});return en()?`${pd}, midnight (12:00 AM)`:`${pd} منتصف الليل (12:00 ص)`}
+ return day+(en()?', ':' · ')+d.toLocaleTimeString(L,{hour:'numeric',minute:'2-digit',hour12:true})};
 const okUrl=u=>/^https?:\/\//i.test(u||'')?u:'';
 const linkOf=f=>okUrl(f.url); /* specific link for one formative */
 const generalLink=()=>{const d=window.sfBoardData&&sfBoardData();return okUrl(d&&d.formative_url)};
@@ -3072,7 +3081,7 @@ function renderCard(){
  if(!c){c=document.createElement('div');c.id='sfFormCard';const r=$('sfChips');host.insertBefore(c,r?r.nextSibling:host.firstChild)}
  c.hidden=false;const dn=done();
  c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><span class="fm-hb">${generalLink()?`<a class="fm-plat" href="${esc(generalLink())}" target="_blank" rel="noopener">🔗 ${en()?'Platform':'المنصة'}</a>`:`<small class="fm-nolink">${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}<button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></span></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
-  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${fdt(f.s)} ← ${fdt(f.e)}</small>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open this formative':'فتح الفورماتيف'}</a>`:''}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
+  return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${en()?"Opens":"يفتح"}: ${fds(f.s)}<br>${en()?"Closes":"يقفل"}: ${fds(f.e)}</small>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open this formative':'فتح الفورماتيف'}</a>`:''}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):st.t}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
  c.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const d=done();d[b.dataset.fd]=!d[b.dataset.fd];if(!d[b.dataset.fd])delete d[b.dataset.fd];LS(DONE,JSON.stringify(d));renderCard();try{sfSyncNotifications()}catch(e){}});
  const g=$('fmGear');if(g)g.onclick=()=>{try{sfGo('settings');setTimeout(()=>{const p=$('sfFormPanel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'})},300)}catch(e){}};
 }
