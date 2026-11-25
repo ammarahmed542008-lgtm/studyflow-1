@@ -878,6 +878,13 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 #sfChips .nw{position:absolute;top:10px;inset-inline-end:10px;font-style:normal;font-size:11px;font-weight:800;background:#fff;color:#c2185b;padding:2px 9px;border-radius:999px}
 #sfChips .tile small{color:#ffffffee!important}
 
+/* 3.9.7 per-part progress boxes */
+.sf-pl-hint{font-size:12.5px;color:var(--muted,#9fb0d0);line-height:1.6;margin:0 0 10px}
+.sf-pl-rg{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:1px dashed var(--line);margin-top:8px;background:#ffffff08}
+.sf-pl-rg .lb{font-size:13.5px}.sf-pl-rg .lb b{font-size:16px}
+.sf-pl-rg label{display:flex;align-items:center;gap:8px;font-size:13px}
+.sf-pl-rg input{width:92px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card,#0000);color:inherit;font:inherit;font-weight:800;text-align:center}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2423,7 +2430,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.6';
+const VERSION='3.9.7';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3052,7 +3059,6 @@ function chips(fs){
  let h='';
  if(hasBoard)h+=`<button type="button" class="tile t-board" data-c="board">${isNew?newTag:''}<span class="ic">📌</span><b>${en()?'Updates board':'لوحة المتابعة'}</b><small>${first?esc(tx(first,'title')):(en()?'Where we reached':'وصلنا لفين')}</small></button>`;
  h+=`<button type="button" class="tile t-form ${st&&st.k==='live'?'live':''} ${open?'on':''}" data-c="form">${fNew(fs)?newTag:''}<span class="ic">📝</span><b>${en()?'Formative':'الفورماتيف'}</b><small>${st?esc(st.t):(fs.length?(en()?'All done ✓':'خلّصت الكل ✓'):(en()?'None right now':'لا يوجد فورماتيف حاليًا'))}</small></button>`;
- if(hasBoard)h+=`<button type="button" class="tile t-goal" data-c="goal"><span class="ic">🎯</span><b>${en()?'Today’s goal':'هدف النهاردة'}</b><small>${goal?esc(goal):(en()?'Enter your pages':'اكتب وصلت لفين')}</small></button>`;
  r.hidden=!h;r.innerHTML=h;
  r.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const c=b.dataset.c;if(c==='form'){open=!open;if(open)LS('sf_form_seen',stampF(fs));renderCard()}else{try{sfGo('board')}catch(e){}}});
 }
@@ -3111,7 +3117,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)try{render
 
 </script>
 <script id="sf-v3-plan">
-/* StudyFlow v3.8: "my progress" vs the class + a daily revision plan (lives inside the updates board) */
+/* StudyFlow v3.9.7: "my progress" vs the class + a daily revision plan (lives inside the updates board).
+   Subjects whose class range is split (e.g. 1–46 and 56–78) get one box per part. */
 (()=>{
 'use strict';
 const en=()=>{try{return lang==='en'}catch(e){return false}};
@@ -3123,6 +3130,9 @@ const getDone=()=>{try{return JSON.parse(LS(DONE)||'{}')||{}}catch(e){return {}}
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const ALIAS={histology:['histology','microscopic'],embryology:['anatomy','embryo','macroscopic'],anatomy:['anatomy','macroscopic'],physiology:['physiology','cell biology'],biochemistry:['bio','cell biology'],professionalism:['professionalism','ethics']};
 const daysTo=d=>Math.ceil((new Date(d+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+const ltr=s=>'⁦'+s+'⁩';
+const rgTxt=([a,b])=>ltr(a===b?String(a):a+'–'+b);
+const segTxt=g=>g.map(rgTxt).join(en()?', ':'، ');
 function finalFor(subject){
  let ex=[];try{ex=JSON.parse(LS('sf_exams')||'[]')||[]}catch(e){}
  const keys=ALIAS[String(subject).toLowerCase()]||[String(subject).toLowerCase()];
@@ -3133,52 +3143,71 @@ const rows=()=>((window.sfBoardData&&sfBoardData())||{}).progress||[];
 function items(){
  const my=getMy();
  return rows().filter(p=>p&&p.page!=null&&p.page!==''&&!isNaN(+p.page)).map(p=>{
-  const cls=+p.page,has=my[p.subject]!=null&&my[p.subject]!=='',mine=has?+my[p.subject]:null;
+  const cls=+p.page;
   const rg=Array.isArray(p.ranges)&&p.ranges.length?p.ranges.map(r=>[+r[0],+r[1]]).filter(r=>r[0]>=1&&r[1]>=r[0]).sort((a,b)=>a[0]-b[0]):null;
-  return {subject:p.subject,cls,mine,total:+p.total>0?+p.total:null,exam:finalFor(p.subject),ranges:rg};
+  const raw=my[p.subject];let mine=null,reach=null;
+  if(rg){
+   reach=rg.map(([a,b],i)=>{let v=Array.isArray(raw)?raw[i]:(raw!=null&&raw!==''?+raw:null);if(v==null||v===''||isNaN(+v))return null;return Math.max(a-1,Math.min(b,+v))});
+   if(reach.every(v=>v==null))reach=null;
+  }else if(raw!=null&&raw!==''&&!Array.isArray(raw)&&!isNaN(+raw))mine=+raw;
+  return {subject:p.subject,cls,mine,reach,ranges:rg,total:+p.total>0?+p.total:null,exam:finalFor(p.subject),has:rg?!!reach:mine!=null};
  });
 }
-/* pages the class covers (ranges) that are still ahead of the student's page */
+/* pages the class covers that the student has not done yet */
 const segs=it=>it.ranges||[[1,it.cls]];
-const remaining=(it,mine)=>segs(it).reduce((n,[a,b])=>n+Math.max(0,b-Math.max(a-1,mine)),0);
-function take(it,mine,n){const out=[];for(const [a,b] of segs(it)){let s=Math.max(a,mine+1);if(s>b)continue;const e=Math.min(b,s+n-1);out.push([s,e]);n-=e-s+1;if(n<=0)break}return out}
-const segTxt=g=>g.map(([a,b])=>'\u2066'+(a===b?String(a):a+'–'+b)+'\u2069').join(en()?', ':'، ');
+const pos=(it,i,a)=>it.ranges?(it.reach&&it.reach[i]!=null?it.reach[i]:a-1):Math.max(0,it.mine||0);
+const remaining=it=>segs(it).reduce((n,[a,b],i)=>n+Math.max(0,b-pos(it,i,a)),0);
+const total=it=>segs(it).reduce((n,[a,b])=>n+b-a+1,0);
+function take(it,n){const out=[];segs(it).forEach(([a,b],i)=>{if(n<=0)return;const s=pos(it,i,a)+1;if(s>b)return;const e=Math.min(b,s+n-1);out.push([s,e]);n-=e-s+1});return out}
 function plan(it){
- if(it.mine==null)return {kind:'ask'};
+ if(!it.has)return {kind:'ask'};
  const ex=it.exam,left=ex?Math.max(1,daysTo(ex.date)-3):null;
- if(it.total&&left){const rem=Math.max(0,it.total-it.mine);return {kind:'finish',rem,days:left,per:Math.ceil(rem/left)}}
- const gap=remaining(it,it.mine);
+ if(it.total&&left&&!it.ranges){const rem=Math.max(0,it.total-it.mine);return {kind:'finish',rem,days:left,per:Math.ceil(rem/left)}}
+ const gap=remaining(it);
  if(gap>0)return {kind:'catch',rem:gap,days:3,per:Math.ceil(gap/3)};
- return {kind:'ok',ahead:Math.max(0,it.mine-it.cls)};
+ return {kind:'ok',ahead:it.ranges?0:Math.max(0,it.mine-it.cls)};
 }
 window.sfPlanToday=function(){
  const out=[];items().forEach(it=>{const p=plan(it);if((p.kind==='finish'||p.kind==='catch')&&p.per>0)out.push({subject:it.subject,per:p.per})});return out;
 };
+const inp=(it,i,val,max,ph)=>`<input type="number" inputmode="numeric" min="0" max="${max}" data-myp="${esc(it.subject)}"${i!=null?` data-ri="${i}"`:''} value="${val==null?'':val}" placeholder="${ph}">`;
 window.sfPlanHTML=function(){
  const its=items();if(!its.length)return '';
  const done=getDone()[today()]||{};
  const rowsHtml=its.map(it=>{
-  const p=plan(it),tot=segs(it).reduce((n,[a,b])=>n+b-a+1,0),pct=it.mine==null?0:Math.min(100,Math.round((tot-remaining(it,it.mine))/Math.max(tot,1)*100));
+  const rem=remaining(it),tot=total(it),pct=it.has?Math.min(100,Math.round((tot-rem)/Math.max(tot,1)*100)):0;
   let chip;
-  if(it.mine==null)chip=`<span class="sf-pl-chip n">${en()?'Enter your page':'اكتب وصلت لفين'}</span>`;
-  else if(remaining(it,it.mine)>0)chip=`<span class="sf-pl-chip late">${en()?`${remaining(it,it.mine)} pages behind`:`متأخر ${remaining(it,it.mine)} صفحة`}</span>`;
-  else if(it.mine>it.cls)chip=`<span class="sf-pl-chip ok">${en()?`+${it.mine-it.cls} ahead`:`متقدم +${it.mine-it.cls}`}</span>`;
+  if(!it.has)chip=`<span class="sf-pl-chip n">${en()?'Enter your pages':'اكتب وصلت لفين'}</span>`;
+  else if(rem>0)chip=`<span class="sf-pl-chip late">${en()?`${rem} pages left`:`باقي ${rem} صفحة`}</span>`;
+  else if(!it.ranges&&it.mine>it.cls)chip=`<span class="sf-pl-chip ok">${en()?`+${it.mine-it.cls} ahead`:`متقدم +${it.mine-it.cls}`}</span>`;
   else chip=`<span class="sf-pl-chip ok">${en()?'On track ✓':'مواكب ✓'}</span>`;
-  return `<div class="sf-pl-row"><div class="sf-pl-top"><b>${esc(it.subject)}</b>${chip}</div><div class="sf-pl-bar"><i style="width:${pct}%"></i></div><div class="sf-pl-in"><span>${en()?'Class':'الجروب'}: <em>${it.ranges?esc(segTxt(it.ranges)):it.cls}</em></span><label>${en()?'I reached':'أنا وصلت'} <input type="number" inputmode="numeric" min="0" max="2000" data-myp="${esc(it.subject)}" value="${it.mine==null?'':it.mine}" placeholder="—"></label></div></div>`;
+  let body;
+  if(it.ranges){
+   body=`<p class="sf-pl-hint">${en()?'The class covers separate parts. For each part, type the last page you reached in it (leave it empty if you have not started it).':'الجروب واخد أجزاء منفصلة. في كل جزء اكتب آخر صفحة وصلتها فيه (سيبه فاضي لو لسه ماخدتش منه حاجة).'}</p>`+it.ranges.map((r,i)=>`<div class="sf-pl-rg"><span class="lb">${en()?'Between':'ما بين'} <b>${rgTxt([r[0],r[0]]).replace(/^(⁦)(.*)(⁩)$/,'$1$2$3')}</b> ${en()?'and':'و'} <b>${ltr(String(r[1]))}</b></span><label><span>${en()?'I reached':'وصلت لصفحة'}</span>${inp(it,i,it.reach&&it.reach[i]!=null&&it.reach[i]>=r[0]?it.reach[i]:null,r[1],ltr(r[0]+'–'+r[1]))}</label></div>`).join('');
+  }else{
+   body=`<div class="sf-pl-in"><span>${en()?'Class':'الجروب'}: <em>${it.cls}</em></span><label>${en()?'I reached':'أنا وصلت'} ${inp(it,null,it.mine,2000,'—')}</label></div>`;
+  }
+  return `<div class="sf-pl-row"><div class="sf-pl-top"><b>${esc(it.subject)}</b>${chip}</div><div class="sf-pl-bar"><i style="width:${pct}%"></i></div>${body}</div>`;
  }).join('');
  const todo=its.map(it=>({it,p:plan(it)})).filter(x=>(x.p.kind==='finish'||x.p.kind==='catch')&&x.p.per>0);
  const planHtml=todo.length?todo.map(({it,p})=>{
   const k=it.subject,on=!!done[k];
   const why=p.kind==='finish'?(en()?`${p.rem} pages left · ${p.days} days (finish 3 days before ${it.exam?esc(it.exam.name.replace(/^Final:?\s*/,'')):'the exam'})`:`باقي ${p.rem} صفحة · ${p.days} يوم (تخلص قبل الامتحان بـ3 أيام)`):(en()?`Catch up with the class · ${p.rem} pages over 3 days`:`لحاق بالجروب · باقي ${p.rem} صفحة على 3 أيام`);
-  return `<label class="sf-pl-todo ${on?'done':''}"><input type="checkbox" data-pld="${esc(k)}" ${on?'checked':''}><span class="tt"><b>${esc(k)}</b><small>${en()?'Pages ':'صفحات '}${segTxt(p.kind==='finish'&&!it.ranges?[[it.mine+1,it.mine+p.per]]:take(it,it.mine,p.per))} · ${why}</small></span><span class="n">${p.per}<small>${en()?'pg/day':'ص/يوم'}</small></span></label>`;
- }).join(''):`<p class="muted">${its.some(i=>i.mine==null)?(en()?'Enter the page you reached in each subject to get today’s plan.':'اكتب وصلت لفين في كل مادة فوق عشان تظهرلك خطة النهاردة.'):(en()?'You are on track in every subject 🎉':'أنت مواكب في كل المواد 🎉')}</p>`;
+  const pg=p.kind==='finish'&&!it.ranges?[[it.mine+1,it.mine+p.per]]:take(it,p.per);
+  return `<label class="sf-pl-todo ${on?'done':''}"><input type="checkbox" data-pld="${esc(k)}" ${on?'checked':''}><span class="tt"><b>${esc(k)}</b><small>${en()?'Pages ':'صفحات '}${segTxt(pg)} · ${why}</small></span><span class="n">${p.per}<small>${en()?'pg/day':'ص/يوم'}</small></span></label>`;
+ }).join(''):`<p class="muted">${its.some(i=>!i.has)?(en()?'Enter the page you reached in each subject to get today’s plan.':'اكتب وصلت لفين في كل مادة فوق عشان تظهرلك خطة النهاردة.'):(en()?'You are on track in every subject 🎉':'أنت مواكب في كل المواد 🎉')}</p>`;
  return `<div class="panel sf-pl"><h3>📈 ${en()?'My progress':'تقدّمي أنا'}</h3><p class="muted">${en()?'Saved on your device only.':'بيتحفظ على جهازك بس.'}</p>${rowsHtml}</div><div class="panel sf-pl"><h3>🎯 ${en()?'Today’s plan':'خطة النهاردة'}</h3>${planHtml}</div>`;
 };
 window.sfPlanBind=function(root){
- root.querySelectorAll('[data-myp]').forEach(i=>i.addEventListener('change',()=>{const m=getMy(),v=i.value.trim();if(v==='')delete m[i.dataset.myp];else m[i.dataset.myp]=Math.max(0,Math.min(2000,parseInt(v,10)||0));LS(MY,JSON.stringify(m));if(window.sfRefreshBoard)sfRefreshBoard()}));
+ root.querySelectorAll('[data-myp]').forEach(i=>i.addEventListener('change',()=>{
+  const m=getMy(),s=i.dataset.myp,v=i.value.trim(),val=v===''?null:Math.max(0,Math.min(2000,parseInt(v,10)||0));
+  if(i.dataset.ri!=null){let arr=Array.isArray(m[s])?m[s].slice():[];const n=root.querySelectorAll('[data-myp="'+s.replace(/"/g,'\\"')+'"][data-ri]').length;while(arr.length<n)arr.push(null);arr[+i.dataset.ri]=val;if(arr.every(x=>x==null))delete m[s];else m[s]=arr}
+  else{if(val==null)delete m[s];else m[s]=val}
+  LS(MY,JSON.stringify(m));if(window.sfRefreshBoard)setTimeout(()=>sfRefreshBoard(),0);
+ }));
  root.querySelectorAll('[data-pld]').forEach(i=>i.addEventListener('change',()=>{const d=getDone(),t=today();d[t]=d[t]||{};d[t][i.dataset.pld]=i.checked;const k=Object.keys(d).sort().slice(-7),o={};k.forEach(x=>o[x]=d[x]);LS(DONE,JSON.stringify(o));i.closest('.sf-pl-todo').classList.toggle('done',i.checked)}));
 };
-window.sfPlanLine=function(){const t=window.sfPlanToday();const n=t.reduce((a,x)=>a+x.per,0);return t.length?(en()?`🎯 Today: ${t.length} subjects · ${n} pages`:`🎯 هدف النهاردة: ${t.length} مواد · ${n} صفحة`):''};
+window.sfPlanLine=function(){const t=window.sfPlanToday();return ''};
 })();
 
 </script>
