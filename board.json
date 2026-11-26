@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T15:15",
+ "updated": "2026-11-26T20:30",
  "progress": [
   {
    "subject": "Physiology",
@@ -126,26 +126,19 @@
  "formatives": [
   {
    "subject": "Physiology",
-   "start": "2026-11-26T18:00",
-   "end": "2026-11-26T23:00",
+   "start": "2026-11-27T18:00",
+   "end": "2026-11-27T23:00",
    "content": "",
    "track": "all",
    "url": "https://svuqenamed.ekb.eg/go/c8ptu1"
-  },
-  {
-   "subject": "Biochemistry",
-   "start": "2026-11-26T21:00",
-   "end": "2026-11-27T21:00",
-   "content": "Carbohydrate metabolism",
-   "content_en": "Carbohydrate metabolism",
-   "track": "all"
   },
   {
    "subject": "Professionalism",
    "start": "2026-11-26T20:00",
    "end": "2026-11-27T00:00",
    "content": "",
-   "track": "all"
+   "track": "all",
+   "url": "https://svuqenamed.ekb.eg/profile/2d9ddd6d-e3db-4f83-8fff-b76078d83b90/redirect?relativeUrl=assignments/1ee8bcdc392f-4635-8c25-243d4851b98a"
   }
  ],
  "formative_url": "https://svuqenamed.ekb.eg/?redirectUrl=https%3A%2F%2Fsvuqenamed.ekb.eg%2Fworkspaces"
