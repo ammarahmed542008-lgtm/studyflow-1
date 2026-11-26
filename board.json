@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25T18:02",
+ "updated": "2026-11-26T15:15",
  "progress": [
   {
    "subject": "Physiology",
@@ -124,6 +124,14 @@
   }
  ],
  "formatives": [
+  {
+   "subject": "Physiology",
+   "start": "2026-11-26T18:00",
+   "end": "2026-11-26T23:00",
+   "content": "",
+   "track": "all",
+   "url": "https://svuqenamed.ekb.eg/go/c8ptu1"
+  },
   {
    "subject": "Biochemistry",
    "start": "2026-11-26T21:00",
