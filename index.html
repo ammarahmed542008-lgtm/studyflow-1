@@ -891,6 +891,8 @@ body.dark .sf-dr-head b,body.dark .sf-dr-head small{display:none!important}
 
 .btnrow>label.btn{display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;line-height:1.2}
 
+.fm-row.cx{opacity:.8}.fm-row.cx .fm-chip{background:#ff5d5d22;color:#ff8a8a}
+
 .hero-logo{width:clamp(54px,14vw,78px);height:auto;vertical-align:middle;margin-inline-end:8px;filter:drop-shadow(0 6px 10px #0006)}
 </style>
 </head>
@@ -2436,7 +2438,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.13';
+const VERSION='3.9.14';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -3093,6 +3095,7 @@ function renderCard(){
  if(!c){c=document.createElement('div');c.id='sfFormCard';const r=$('sfChips');host.insertBefore(c,r?r.nextSibling:host.firstChild)}
  c.hidden=false;const dn=done();
  c.innerHTML=`<div class="fm-h"><b>📝 ${en()?'Formative':'الفورماتيف'}</b><span class="fm-hb">${generalLink()?`<a class="fm-plat" href="${esc(generalLink())}" target="_blank" rel="noopener">🔗 ${en()?'Platform':'المنصة'}</a>`:`<small class="fm-nolink">${en()?'No link yet':'لا يوجد رابط حاليًا'}</small>`}<button type="button" class="fm-gear" id="fmGear" aria-label="settings">🔔</button></span></div>`+fs.map(f=>{const st=state(f),d=!!dn[key(f)];
+  if(f.cancelled)return `<div class="fm-row cx"><div class="fm-t"><b>${esc(f.subject)}</b></div><div class="fm-r"><span class="fm-chip">${en()?'Cancelled until further notice':'ملغي لحين إشعار'}</span></div></div>`;
   return `<div class="fm-row ${st.k} ${d?'ok':''}"><div class="fm-t"><b>${esc(f.subject)}</b>${tx(f,'content')?`<small>${esc(tx(f,'content'))}</small>`:''}<small class="fm-w">${en()?"Opens":"يفتح"}: ${fds(f.s)}<br>${en()?"Closes":"يقفل"}: ${fds(f.e)}</small><div class="fm-cd" data-fs="${f.s}" data-fe="${f.e}">${cdTxt(f).t}</div>${linkOf(f)?`<a class="fm-link" href="${esc(linkOf(f))}" target="_blank" rel="noopener">🔗 ${en()?'Open this formative':'فتح الفورماتيف'}</a>`:''}</div><div class="fm-r"><span class="fm-chip">${d?(en()?'Done ✓':'تم ✓'):(st.k==='soon'?(en()?'Not open yet':'لسه ما فتحش'):st.k==='live'?(en()?'Open now':'شغال الآن'):(en()?'Closed':'انتهى'))}</span>${st.k!=='end'?`<button type="button" class="fm-done" data-fd="${esc(key(f))}">${d?(en()?'Undo':'تراجع'):(en()?'I finished it':'خلّصته')}</button>`:''}</div></div>`}).join('');
  c.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const d=done();d[b.dataset.fd]=!d[b.dataset.fd];if(!d[b.dataset.fd])delete d[b.dataset.fd];LS(DONE,JSON.stringify(d));renderCard();try{sfSyncNotifications()}catch(e){}});
  const g=$('fmGear');if(g)g.onclick=()=>{try{sfGo('settings');setTimeout(()=>{const p=$('sfFormPanel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'})},300)}catch(e){}};
@@ -3103,7 +3106,7 @@ const ST=[[1440,'قبلها بيوم','1 day before'],[180,'قبلها بـ3 س�
 const EN=[[360,'قبل الانتهاء بـ6 ساعات','6 h before end'],[180,'قبل الانتهاء بـ3 ساعات','3 h before end'],[60,'قبل الانتهاء بساعة','1 h before end'],[30,'قبل الانتهاء بنص ساعة','30 min before end'],[10,'قبل الانتهاء بـ10 دقائق','10 min before end']];
 window.sfFormativeNotifs=function(){
  const c=cfg(),out=[];if(!c.on)return out;const dn=done();
- list().forEach(f=>{if(c.mute[f.subject]||dn[key(f)])return;const k=key(f),what=tx(f,'content');
+ list().forEach(f=>{if(f.cancelled||c.mute[f.subject]||dn[key(f)])return;const k=key(f),what=tx(f,'content');
   if(c.morning){const [hh,mm]=String(c.mtime||'08:00').split(':').map(Number),d0=new Date(f.s);d0.setHours(hh||0,mm||0,0,0);
    if(d0.getTime()<f.s)out.push({tag:'F'+k+'m',at:d0.getTime(),title:en()?`📝 Today: ${f.subject} formative`:`📝 النهاردة فورماتيف ${f.subject}`,body:(what?what+' · ':'')+(en()?'Opens ':'يفتح ')+fdt(f.s)+(en()?' · closes ':' · يقفل ')+fdt(f.e)})}
   c.st.forEach(m=>{out.push({tag:'F'+k+'s'+m,at:f.s-m*6e4,title:m===0?(en()?`📝 ${f.subject} formative is open now`:`📝 فورماتيف ${f.subject} بدأ الآن`):(en()?`📝 ${f.subject} formative starts in ${dur(m*6e4)}`:`📝 فورماتيف ${f.subject} يبدأ بعد ${dur(m*6e4)}`),body:(what?what+' · ':'')+(en()?'Ends ':'ينتهي ')+fdt(f.e)})});

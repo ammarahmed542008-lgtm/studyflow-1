@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T20:30",
+ "updated": "2026-11-26T20:35",
  "progress": [
   {
    "subject": "Physiology",
@@ -139,6 +139,15 @@
    "content": "",
    "track": "all",
    "url": "https://svuqenamed.ekb.eg/profile/2d9ddd6d-e3db-4f83-8fff-b76078d83b90/redirect?relativeUrl=assignments/1ee8bcdc392f-4635-8c25-243d4851b98a"
+  },
+  {
+   "subject": "Biochemistry",
+   "start": "2027-01-01T00:00",
+   "end": "2027-01-01T01:00",
+   "content": "ملغي لحين إشعار",
+   "content_en": "Cancelled until further notice",
+   "track": "all",
+   "cancelled": true
   }
  ],
  "formative_url": "https://svuqenamed.ekb.eg/?redirectUrl=https%3A%2F%2Fsvuqenamed.ekb.eg%2Fworkspaces"
