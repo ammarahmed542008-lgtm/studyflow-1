@@ -2438,7 +2438,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.15';
+const VERSION='3.9.16';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2827,7 +2827,9 @@ const AH_RM={1:'FR-5',2:'FR-6',3:'FR-9',4:'FR-23',5:'FR-26',6:'FR-7',7:'SD-5',8:
 const AH_AN='\u0627\u0644\u0645\u0634\u0631\u062d\u0629 \u0637\u0628 \u0662';
 const FR1=AH_AN+' (FR 01)',FR6=AH_AN+' (FR 06)';
 const SAT21={Bio:{1:'SD05',2:'SD06',3:'SD07',4:'SD05'},Anatomy:{4:FR1,5:FR6,1:FR1,2:FR6},Physiology:{3:'SD07',6:'SD08',9:'SD29',10:'SD30'},Histology:{7:'SD10',8:'SD27',5:'SD06',6:'SD08'},Professionalism:{9:'SD29',10:'SD30',7:'SD10',8:'SD27'}};
-const ahP=(sub,secs,w,di)=>secs.map(n=>({name:(sub==='Biochemistry'?'Bio':sub)+' sec '+n,sections:[n],room:(w===10&&di===0&&SAT21[sub==='Biochemistry'?'Bio':sub])?SAT21[sub==='Biochemistry'?'Bio':sub][n]:(sub==='Anatomy'?AH_AN:AH_RM[n])}));
+const SAT28={Bio:{1:'SD05',2:'SD06',3:'SD07',4:'SD05'},Anatomy:{1:FR1,2:FR6,4:FR1,5:FR6},Physiology:{3:'SD07',6:'SD08',9:'SD31',10:'SD32'},Histology:{5:'SD06',6:'SD08',7:'SD10',8:'SD30'},Professionalism:{7:'SD10',8:'SD30',9:'SD31',10:'SD32'}};
+const satRoom=(w,di,sub,n)=>{const k=sub==='Biochemistry'?'Bio':sub;const m=(w===10&&di===0)?SAT21:(w===11&&di===0)?SAT28:null;return m&&m[k]?m[k][n]:undefined};
+const ahP=(sub,secs,w,di)=>secs.map(n=>({name:(sub==='Biochemistry'?'Bio':sub)+' sec '+n,sections:[n],room:satRoom(w,di,sub,n)||(sub==='Anatomy'?AH_AN:AH_RM[n])}));
 const ahL=(n,r)=>({name:n,room:r,lecture:true});
 function ahWeek(w){/*defined below*/
  const mon=w===10?{b:[['Bio',[6]],['Anatomy',[8]],['Physiology',[2]],['Histology',[10]],['Professionalism',[4]]],c:[['Bio',[8]],['Anatomy',[10]],['Physiology',[4]],['Histology',[2]],['Professionalism',[6]]]}
@@ -2837,7 +2839,7 @@ function ahWeek(w){/*defined below*/
  const P=(list,di)=>[].concat(...list.map(x=>ahP(x[0]==='Bio'?'Biochemistry':x[0],x[1],w,di)));
  const day=(nm,di,slots)=>{const d=new Date(AH_T0.getFullYear(),AH_T0.getMonth(),AH_T0.getDate()+7*(w-6)+di);return {day:nm,date:d2(d),slots:slots.filter(x=>x[1].length).map(x=>({time:SLOT[x[0]],items:x[1]}))}};
  return [
-  day('Saturday',0,[['A',[ahL('Anatomy lec 1','Hall 7')]],['B',P([['Bio',[1,2]],['Anatomy',[5,4]],['Physiology',[3,6]],['Histology',[7,8]],['Professionalism',[9,10]]],0)],['C',P([['Bio',[3,4]],['Anatomy',[1,2]],['Physiology',[9,10]],['Histology',[5,6]],['Professionalism',[7,8]]],0)]]),
+  day('Saturday',0,[['A',[w===11?ahL('Anatomy lec','\u0645\u062f\u0631\u062c 1'):ahL('Anatomy lec 1','Hall 7')]],['B',P([['Bio',[1,2]],['Anatomy',[5,4]],['Physiology',[3,6]],['Histology',[7,8]],['Professionalism',[9,10]]],0)],['C',P([['Bio',[3,4]],['Anatomy',[1,2]],['Physiology',[9,10]],['Histology',[5,6]],['Professionalism',[7,8]]],0)]]),
   day('Sunday',1,[['A',[ahL('Histology lec','Hall 1')]],['B',[ahL('Bio lec 1','Hall 1')]],['C',P([['Bio',[7,10]],['Anatomy',[6]],['Physiology',[5]],['Histology',[1]],['Professionalism',[2]]],1)]]),
   day('Monday',2,[['A',[ahL('Professionalism lec','Hall 1')]],['B',P(mon.b,2)],['C',P(mon.c,2)]]),
   day('Tuesday',3,[['A',[ahL('Physiology lec','Hall 7')]],['B',[ahL('Anatomy lec 2','Hall 7')]],['C',P([['Anatomy',[9]],['Physiology',[8]],['Histology',[4]],['Professionalism',[3]]],3)]]),
@@ -2865,8 +2867,8 @@ const GOV={};
 })();
 
 [10,11,12].forEach(w=>{AH_WEEKS[w]=ahWeek(w)});
-/* extra Anatomy lecture, Saturday 28-11-2026 (week 11), 2-4 pm */
-(function(){const d=(AH_WEEKS[11]||[]).find(x=>x.day==='Saturday');if(d&&!d.slots.some(x=>x.time===SLOT.D))d.slots.push({time:SLOT.D,items:[{name:'Anatomy lec (extra)',lecture:true}]})})();
+/* Saturday 28-11-2026 (week 11): second Anatomy lecture 2-4 pm */
+(function(){const d=(AH_WEEKS[11]||[]).find(x=>x.day==='Saturday');if(d&&!d.slots.some(x=>x.time===SLOT.D))d.slots.push({time:SLOT.D,items:[ahL('Anatomy lec','\u0645\u062f\u0631\u062c 1')]})})();
 
 /* ---------- public helpers used across the app ---------- */
 const track=()=>LS('sf_track')==='gov'?'gov':'ahlia';
