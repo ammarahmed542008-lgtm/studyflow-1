@@ -2438,7 +2438,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.14';
+const VERSION='3.9.15';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2935,7 +2935,7 @@ function applyUI(){
   const cur=Math.max(6,Math.min(12,safe(()=>sfCurrentWeek())||6));mw.value=String(cur);
  }
  const h=document.querySelector('#view-schedule .personal-section-tools h2');if(h)h.textContent=gov?'🎯 أضف مواعيد جروبك تلقائيًا':'🎯 أضف مواعيد سكشنك تلقائيًا';
- const ab=document.querySelector('#sfSchedAdd [data-open=auto]');if(ab)ab.textContent='🎯 '+(en()?(gov?'Add my group':'Add my section'):'أضف '+zh+(gov?'ي':'ني'));
+ const ab=document.querySelector('#sfSchedAdd [data-open=auto]');if(ab)ab.textContent='🎯 '+(en()?(gov?'Add my group':'Add my section'):'أضف '+zh+'ي');
  /* exams */
  const exams2=gov?GOV_EXAMS:AH_EXAMS;
  OFFICIAL_EXAMS.length=0;exams2.forEach(x=>OFFICIAL_EXAMS.push(x.slice()));
