@@ -2438,7 +2438,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.16';
+const VERSION='3.9.17';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2828,7 +2828,8 @@ const AH_AN='\u0627\u0644\u0645\u0634\u0631\u062d\u0629 \u0637\u0628 \u0662';
 const FR1=AH_AN+' (FR 01)',FR6=AH_AN+' (FR 06)';
 const SAT21={Bio:{1:'SD05',2:'SD06',3:'SD07',4:'SD05'},Anatomy:{4:FR1,5:FR6,1:FR1,2:FR6},Physiology:{3:'SD07',6:'SD08',9:'SD29',10:'SD30'},Histology:{7:'SD10',8:'SD27',5:'SD06',6:'SD08'},Professionalism:{9:'SD29',10:'SD30',7:'SD10',8:'SD27'}};
 const SAT28={Bio:{1:'SD05',2:'SD06',3:'SD07',4:'SD05'},Anatomy:{1:FR1,2:FR6,4:FR1,5:FR6},Physiology:{3:'SD07',6:'SD08',9:'SD31',10:'SD32'},Histology:{5:'SD06',6:'SD08',7:'SD10',8:'SD30'},Professionalism:{7:'SD10',8:'SD30',9:'SD31',10:'SD32'}};
-const satRoom=(w,di,sub,n)=>{const k=sub==='Biochemistry'?'Bio':sub;const m=(w===10&&di===0)?SAT21:(w===11&&di===0)?SAT28:null;return m&&m[k]?m[k][n]:undefined};
+const SUN29={Bio:{7:'SD07',10:'SD08'}};
+const satRoom=(w,di,sub,n)=>{const k=sub==='Biochemistry'?'Bio':sub;if(w===11&&di===1)return SUN29[k]?SUN29[k][n]:undefined;const m=(w===10&&di===0)?SAT21:(w===11&&di===0)?SAT28:null;return m&&m[k]?m[k][n]:undefined};
 const ahP=(sub,secs,w,di)=>secs.map(n=>({name:(sub==='Biochemistry'?'Bio':sub)+' sec '+n,sections:[n],room:satRoom(w,di,sub,n)||(sub==='Anatomy'?AH_AN:AH_RM[n])}));
 const ahL=(n,r)=>({name:n,room:r,lecture:true});
 function ahWeek(w){/*defined below*/
