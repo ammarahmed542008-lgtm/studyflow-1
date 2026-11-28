@@ -2447,7 +2447,7 @@ setInterval(()=>{sfPushWidget()},10*60*1000);
 /* StudyFlow: in-app update check + "install update" button (hosted on any static host, e.g. GitHub Pages) */
 (()=>{
 'use strict';
-const VERSION='3.9.18';
+const VERSION='3.9.19';
 const $=id=>document.getElementById(id);
 const safe=f=>{try{return f()}catch(e){console.warn('[sf update]',e)}};
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
@@ -2832,7 +2832,7 @@ const d2=(d)=>d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
 
 AH_WEEKS[10]=[];AH_WEEKS[11]=[];AH_WEEKS[12]=[];
 /* ---------- private (ahlia) weeks 10-12: new university file (last update 20-11-2026) ---------- */
-const AH_RM={1:'FR-5',2:'FR-6',3:'FR-9',4:'FR-23',5:'FR-26',6:'FR-7',7:'SD-5',8:'SD-6',9:'SD-7',10:'FR-5'};
+const AH_RM={1:'SD05',2:'SD06',3:'SD07',4:'SD08',5:'SD10',6:'SD05',7:'SD06',8:'SD07',9:'SD08',10:'SD10'};
 const AH_AN='\u0627\u0644\u0645\u0634\u0631\u062d\u0629 \u0641\u064a \u0645\u0628\u0646\u0649 \u0637\u0628 \u0662';
 const FR1=AH_AN+'\nFR 01',FR6=AH_AN+'\nFR 06';
 const SAT21={Bio:{1:'SD05',2:'SD06',3:'SD07',4:'SD05'},Anatomy:{4:FR1,5:FR6,1:FR1,2:FR6},Physiology:{3:'SD07',6:'SD08',9:'SD29',10:'SD30'},Histology:{7:'SD10',8:'SD27',5:'SD06',6:'SD08'},Professionalism:{9:'SD29',10:'SD30',7:'SD10',8:'SD27'}};
